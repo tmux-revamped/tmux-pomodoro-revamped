@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A phase change is claimed with one conditional tmux command, so with
   several attached clients the work period is counted, and the hooks and
   alerts fire, exactly once.
+- The help popup shows the `#{@pomodoro_status}` and `#{@pomodoro_week}`
+  token names instead of their expanded values.
 
 ## [1.2.0] - 2026-06-30
 

@@ -414,3 +414,15 @@ teardown() {
   [[ "$(sed -n 2,3p "${BATS_TEST_TMPDIR}/claim")" == "$(printf '%s\n' -F '#{==:#{@pomodoro_revamped_last_phase},work}')" ]] || false
   [[ "$(sed -n 4p "${BATS_TEST_TMPDIR}/claim")" == "set-option -gq @pomodoro_revamped_last_phase break ; set-option -gq @pomodoro_revamped_transition_claim "* ]]
 }
+
+@test "pomodoro.sh - the help popup escapes token names so tmux shows them literally" {
+  # Arrange
+  _tmux() { printf '%s\n' "$@" > "${BATS_TEST_TMPDIR}/seam"; }
+
+  # Act
+  pomodoro_help
+
+  # Assert
+  [[ "$(sed -n 2p "${BATS_TEST_TMPDIR}/seam")" == "-E" ]] || false
+  [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" == *"'tokens: ##{@pomodoro_status} ##{@pomodoro_week}'"* ]]
+}
