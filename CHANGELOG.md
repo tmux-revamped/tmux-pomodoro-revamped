@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-17
+
+### Changed
+
+- **Breaking:** start and pause moves from `prefix + p` to `prefix + M-s`, the
+  key the family allocates to this plugin, and `off` unbinds it. Every other
+  action is unbound by default: cancel `P`, skip `_`, restart `R`, menu `o`
+  and help `?`. Set `@pomodoro_revamped_<action>_key` to bring a key back,
+  for example `@pomodoro_revamped_menu_key 'o'`, and
+  `@pomodoro_revamped_toggle_key 'p'` to keep the toggle where it was.
+
 ### Fixed
 
 - The plugin path is quoted in every key binding, status job and menu item,

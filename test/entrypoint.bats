@@ -32,7 +32,7 @@ _logged_field() {
   bash "${COPY_DIR}/pomodoro-revamped.tmux"
 
   # Assert
-  eval "words=($(_logged_field "$(printf 'bind-key\037p\037')" 4))"
+  eval "words=($(_logged_field "$(printf 'bind-key\037M-s\037')" 4))"
   [ "${words[0]}" == "${COPY_DIR}/src/pomodoro.sh" ]
   [ "${words[1]}" == "toggle" ]
 }
@@ -53,4 +53,23 @@ _logged_field() {
   eval "words=(${command})"
   [ "${words[0]}" == "${COPY_DIR}/src/pomodoro.sh" ]
   [ "${words[1]}" == "status" ]
+}
+
+@test "entrypoint - only the toggle is bound by default, on M-s" {
+  # Act
+  bash "${COPY_DIR}/pomodoro-revamped.tmux"
+
+  # Assert
+  [ "$(grep -c "^bind-key"$'\037' "${TMUX_LOG}")" -eq 1 ] || false
+  [ "$(_logged_field "$(printf 'bind-key\037')" 2)" == "M-s" ]
+}
+
+@test "entrypoint - cancel, skip, restart, menu and help stay unbound by default" {
+  # Act
+  bash "${COPY_DIR}/pomodoro-revamped.tmux"
+
+  # Assert
+  [[ "$(cat "${TMUX_LOG}")" != *"cancel"* ]] || false
+  [[ "$(cat "${TMUX_LOG}")" != *" menu"* ]] || false
+  [[ "$(cat "${TMUX_LOG}")" != *" help"* ]]
 }

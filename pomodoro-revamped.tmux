@@ -18,12 +18,19 @@ get_key() {
 
 chmod +x "${POMO_CMD}" 2>/dev/null || true
 
-tmux bind-key "$(get_key "@pomodoro_revamped_toggle_key" "p")" run-shell "${POMO_Q} toggle"
-tmux bind-key "$(get_key "@pomodoro_revamped_cancel_key" "P")" run-shell "${POMO_Q} cancel"
-tmux bind-key "$(get_key "@pomodoro_revamped_skip_key" "_")" run-shell "${POMO_Q} skip"
-tmux bind-key "$(get_key "@pomodoro_revamped_restart_key" "R")" run-shell "${POMO_Q} restart"
-tmux bind-key "$(get_key "@pomodoro_revamped_menu_key" "o")" run-shell "${POMO_Q} menu"
-tmux bind-key "$(get_key "@pomodoro_revamped_help_key" "?")" run-shell "${POMO_Q} help"
+bind_action() {
+  local key
+  key="$(get_key "${1}" "${2}")"
+  [[ -z "${key}" || "${key}" == "off" ]] && return 0
+  tmux bind-key "${key}" run-shell "${POMO_Q} ${3}"
+}
+
+bind_action "@pomodoro_revamped_toggle_key" "M-s" toggle
+bind_action "@pomodoro_revamped_cancel_key" "" cancel
+bind_action "@pomodoro_revamped_skip_key" "" skip
+bind_action "@pomodoro_revamped_restart_key" "" restart
+bind_action "@pomodoro_revamped_menu_key" "" menu
+bind_action "@pomodoro_revamped_help_key" "" help
 
 placeholders=(
   "#{pomodoro_status}"

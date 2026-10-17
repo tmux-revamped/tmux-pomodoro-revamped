@@ -4,7 +4,7 @@
 
 **A Pomodoro timer in your tmux status bar, with zero temp files: all state lives in tmux options.**
 
-[![Tests](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
+[![Tests](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
 
 </div>
 
@@ -41,16 +41,21 @@ Each render also publishes machine-readable options for sibling plugins and them
 
 ## Controls
 
-| Key | Action |
-|-----|--------|
-| `prefix + p` | start, or pause/resume a running timer |
-| `prefix + P` | cancel the timer |
-| `prefix + _` | skip to the next phase |
-| `prefix + R` | restart the current phase |
-| `prefix + o` | open the control menu |
-| `prefix + ?` | open the help popup |
+`prefix + M-s` starts the timer, or pauses and resumes a running one. It is the
+one key the family allocates to this plugin. Every other action is unbound until
+you set its option; the example key is the one it used to default to.
 
-All keys are configurable.
+| Option | Action | Example key |
+|--------|--------|-------------|
+| `@pomodoro_revamped_cancel_key` | cancel the timer | `P` |
+| `@pomodoro_revamped_skip_key` | skip to the next phase | `_` |
+| `@pomodoro_revamped_restart_key` | restart the current phase | `R` |
+| `@pomodoro_revamped_menu_key` | open the control menu | `o` |
+| `@pomodoro_revamped_help_key` | open the help popup | `?` |
+
+```tmux
+set -g @pomodoro_revamped_menu_key 'o'
+```
 
 ## Install
 
@@ -87,12 +92,12 @@ Then press `prefix + I`, and add `#{pomodoro_status}` to your status line.
 | `@pomodoro_revamped_bell` | `0` | set to `1` to ring the terminal bell on a phase change |
 | `@pomodoro_revamped_on_cycle` | unset | shell command run when a long break (cycle) begins |
 | `@pomodoro_revamped_on_warn` | unset | shell command run at the end-of-phase warning |
-| `@pomodoro_revamped_restart_key` | `R` | restart-phase key |
-| `@pomodoro_revamped_menu_key` | `o` | control-menu key |
-| `@pomodoro_revamped_help_key` | `?` | help-popup key |
-| `@pomodoro_revamped_toggle_key` | `p` | start / pause / resume key |
-| `@pomodoro_revamped_cancel_key` | `P` | cancel key |
-| `@pomodoro_revamped_skip_key` | `_` | skip-phase key |
+| `@pomodoro_revamped_restart_key` | empty | restart-phase key, unbound until set, for example `R` |
+| `@pomodoro_revamped_menu_key` | empty | control-menu key, unbound until set, for example `o` |
+| `@pomodoro_revamped_help_key` | empty | help-popup key, unbound until set, for example `?` |
+| `@pomodoro_revamped_toggle_key` | `M-s` | start / pause / resume key; `off` unbinds it |
+| `@pomodoro_revamped_cancel_key` | empty | cancel key, unbound until set, for example `P` |
+| `@pomodoro_revamped_skip_key` | empty | skip-phase key, unbound until set, for example `_` |
 | `@pomodoro_revamped_{work,break,long_break}_color` | red, green, blue | per-phase color |
 | `@pomodoro_revamped_{work,break,long_break}_icon` | empty | per-phase glyph, for example a Nerd Font tomato or coffee cup |
 | `@pomodoro_revamped_pause_text` | ` paused` | text appended while paused |
