@@ -26,8 +26,13 @@ setup_test_environment() {
   unset _TMUX_PLUGIN_ERROR_LOGGER_LOADED
   unset _TMUX_PLUGIN_PLATFORM_LOADED
   unset _TMUX_PLUGIN_CACHE_LOADED
-  unset _POMODORO_REVAMPED_RENDER_LOADED
   unset _TMUX_PLUGIN_TMUX_OPS_LOADED
+  unset _TMUX_PLUGIN_PUBLISH_LOADED
+  unset _TMUX_PLUGIN_TICKER_LOADED
+
+  if declare -f setup_test_environment_local >/dev/null; then
+    setup_test_environment_local
+  fi
 }
 
 cleanup_test_environment() {
@@ -74,9 +79,9 @@ tmux() {
       local name=""
       while [ $# -gt 0 ]; do
         case "$1" in
-          -gqv|-wqv|-pqv|-gq|-g|-q|-w|-p) ;;
           -t) shift ;;
-          @*) name="$1" ;;
+          -*) ;;
+          *) name="$1" ;;
         esac
         shift
       done
@@ -150,3 +155,9 @@ export -f _mock_if_option_equals
 export -f _mock_run_commands
 export -f tmux
 export -f date
+
+_HELPERS_LOCAL="$(dirname "${BASH_SOURCE[0]}")/helpers_local.bash"
+if [ -f "${_HELPERS_LOCAL}" ]; then
+  # shellcheck source=/dev/null
+  source "${_HELPERS_LOCAL}"
+fi
