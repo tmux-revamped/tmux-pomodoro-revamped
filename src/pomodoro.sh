@@ -31,8 +31,14 @@ _notify() {
 # _fmt_hm EPOCH -> "HH:MM" in local time. BSD date uses -r, GNU date uses -d.
 _fmt_hm() { date -r "${1}" +%H:%M 2>/dev/null || date -d "@${1}" +%H:%M 2>/dev/null || echo "??:??"; }
 # _bell -> ring the terminal bell, an SSH-friendly fallback when no desktop
-# notifier exists. The sink is a real tty in production and a file under test.
-_bell() { printf '\a' >> "${POMODORO_BELL_SINK:-/dev/tty}" 2>/dev/null || true; }
+# notifier exists. The bell is written to the tty of every attached client.
+_bell() {
+  local tty
+  while IFS= read -r tty; do
+    [[ -n "${tty}" ]] && printf '\a' >> "${tty}" 2>/dev/null
+  done < <(_tmux list-clients -F '#{client_tty}' 2>/dev/null)
+  return 0
+}
 # _tmux -> the single seam every interactive tmux call routes through (display-menu,
 # display-popup). Tests mock it so a real menu or popup is never launched.
 _tmux() { tmux "$@"; }

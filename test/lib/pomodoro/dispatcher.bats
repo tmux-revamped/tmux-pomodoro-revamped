@@ -235,7 +235,7 @@ teardown() {
 }
 
 @test "pomodoro.sh - the bell rings on a transition when enabled" {
-  export POMODORO_BELL_SINK="${BATS_TEST_TMPDIR}/bell"
+  _tmux() { [[ "${1}" == "list-clients" ]] && printf '%s\n' "${BATS_TEST_TMPDIR}/bell"; return 0; }
   set_tmux_option @pomodoro_revamped_bell 1
   set_tmux_option @pomodoro_revamped_state running
   set_tmux_option @pomodoro_revamped_last_phase work
@@ -330,9 +330,27 @@ teardown() {
   [[ "${output}" =~ ^[0-9]{2}:[0-9]{2}$ ]]
 }
 
-@test "pomodoro.sh - the bell seam writes to its sink" {
-  POMODORO_BELL_SINK="${BATS_TEST_TMPDIR}/bell" _bell
-  [[ -s "${BATS_TEST_TMPDIR}/bell" ]]
+@test "pomodoro.sh - the bell rings on the tty of every attached client" {
+  # Arrange
+  _tmux() { [[ "${1}" == "list-clients" ]] && printf '%s\n' "${BATS_TEST_TMPDIR}/tty1" "${BATS_TEST_TMPDIR}/tty2"; return 0; }
+
+  # Act
+  _bell
+
+  # Assert
+  [[ "$(od -An -c "${BATS_TEST_TMPDIR}/tty1" | tr -d ' ')" == '\a' ]] || false
+  [[ "$(od -An -c "${BATS_TEST_TMPDIR}/tty2" | tr -d ' ')" == '\a' ]]
+}
+
+@test "pomodoro.sh - the bell asks tmux for the client ttys" {
+  # Arrange
+  _tmux() { printf '%s\n' "$@" > "${BATS_TEST_TMPDIR}/seam"; }
+
+  # Act
+  _bell
+
+  # Assert
+  [[ "$(cat "${BATS_TEST_TMPDIR}/seam")" == "$(printf '%s\n' list-clients -F '#{client_tty}')" ]]
 }
 
 @test "pomodoro.sh - junk minute and interval options fall back to defaults" {

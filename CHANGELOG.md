@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The plugin path is quoted in every key binding, status job and menu item,
   so an install directory containing a space or a quote works.
+- The phase-change bell rings on the tty of every attached client. It wrote
+  to `/dev/tty`, which a status job does not have, so it never rang.
 
 ## [1.2.0] - 2026-06-30
 
