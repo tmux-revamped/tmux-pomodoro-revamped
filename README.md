@@ -1,140 +1,179 @@
 <div align="center">
 
-<h1>tmux-pomodoro-revamped</h1>
+# tmux-pomodoro-revamped
 
-**A Pomodoro timer in your tmux status bar, with zero temp files: all state lives in tmux options.**
+<strong>A Pomodoro timer in the tmux status bar that keeps all of its state in tmux options, with no temp files.</strong>
 
-[![Tests](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
+English &nbsp;|&nbsp; [日本語](README.ja.md) &nbsp;|&nbsp; [简体中文](README.zh-Hans.md) &nbsp;|&nbsp; [繁體中文（香港）](README.zh-HK.md)
+
+[![Tests](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
+
+<p align="center">
+  <a href="#what-it-does">What it does</a> &nbsp;|&nbsp;
+  <a href="#installation">Installation</a> &nbsp;|&nbsp;
+  <a href="#usage">Usage</a> &nbsp;|&nbsp;
+  <a href="#configuration">Configuration</a> &nbsp;|&nbsp;
+  <a href="#key-bindings">Key bindings</a> &nbsp;|&nbsp;
+  <a href="#how-it-works">How it works</a>
+</p>
 
 </div>
 
-**work + breaks** · **no temp files** · **tmux 3.2+** · **95%+** coverage
+**25 minutes of work, 5-minute breaks, and a 15-minute long break after every 4 work periods. 0 temp files. Tested on macOS and Linux.**
 
-A Pomodoro timer that counts down work and break intervals in the status bar. The whole timeline is computed from a single start epoch, so there is **no temp file** anywhere (the original keeps seven in `/tmp`), nothing to clean up, and no `/tmp` collision between users. State lives entirely in tmux server options, and the phase is computed on demand, so the render never spawns a background process.
+---
 
-Built from [tmux-plugin-template](https://github.com/tmux-revamped/tmux-plugin-template).
+## What it does
 
-<table>
-<tr>
-<td><strong>No temp files</strong><br>The timeline is pure math over a start epoch. State is in tmux options, nothing on disk.</td>
-<td><strong>Full cycle</strong><br>Work, short breaks, and a long break after every N intervals, then it repeats.</td>
-</tr>
-<tr>
-<td><strong>Pause and resume</strong><br>Paused time is tracked exactly, so the countdown is correct after any number of pauses.</td>
-<td><strong>Notifications</strong><br>A desktop notification on each phase change, via osascript on macOS or notify-send on Linux.</td>
-</tr>
-</table>
+The timer counts down work periods and breaks in the status bar, then repeats the cycle. It pauses and resumes without losing a second, and on each phase change it can send a desktop notification, ring the terminal bell, and run a shell command of your choice. It also keeps a 7-day tally of finished work periods.
 
-## Status placeholder
+## Requirements
 
-Put `#{pomodoro_status}` in your status line:
+| Requirement | Version or note |
+|:------------|:----------------|
+| tmux | 3.2 or later, for the help popup |
+| bash | 3.2 or later, so the stock macOS `/bin/bash` works |
+| Operating system | macOS on Apple Silicon and Intel, Linux on x86_64 and arm64 |
+| Core tools | BSD, GNU or uutils coreutils |
+| `osascript` or `notify-send` | Optional, for desktop notifications on macOS or Linux |
 
-```tmux
-set -g status-right '#{pomodoro_status} | %H:%M'
-```
+## Installation
 
-It renders the phase color, the `MM:SS` countdown, and `[interval/total]`, for example `23:20 [1/4]`. It is empty when no timer is running.
-
-Each render also writes the same segment to the `@pomodoro_status` tmux option, so a theme or another plugin can read the current value with `#{@pomodoro_status}` without invoking the script.
-
-Each render also publishes machine-readable options for sibling plugins and themes: `@pomodoro_phase` (work, break, or long_break), `@pomodoro_remaining` (seconds left), `@pomodoro_fraction` (percent elapsed), `@pomodoro_week` (a glyph-free weekly focus sparkline), and `@pomodoro_today` (work periods completed today). The weekly tally is a bounded 7-slot ring kept in tmux options, so there is still no temp file.
-
-## Controls
-
-`prefix + M-s` starts the timer, or pauses and resumes a running one. It is the
-one key the family allocates to this plugin. Every other action is unbound until
-you set its option; the example key is the one it used to default to.
-
-| Option | Action | Example key |
-|--------|--------|-------------|
-| `@pomodoro_revamped_cancel_key` | cancel the timer | `P` |
-| `@pomodoro_revamped_skip_key` | skip to the next phase | `_` |
-| `@pomodoro_revamped_restart_key` | restart the current phase | `R` |
-| `@pomodoro_revamped_menu_key` | open the control menu | `o` |
-| `@pomodoro_revamped_help_key` | open the help popup | `?` |
-
-```tmux
-set -g @pomodoro_revamped_menu_key 'o'
-```
-
-## Install
-
-With [TPM](https://github.com/tmux-plugins/tpm), add to `~/.tmux.conf`:
+With [TPM](https://github.com/tmux-plugins/tpm), add the plugin and the placeholder to `~/.tmux.conf`, then press `prefix + I`:
 
 ```tmux
 set -g @plugin 'tmux-revamped/tmux-pomodoro-revamped'
+set -g status-right '#{pomodoro_status} | %H:%M'
 ```
 
-Then press `prefix + I`, and add `#{pomodoro_status}` to your status line.
+Without TPM, clone the repository and run the entry point from `~/.tmux.conf`, after the line that sets `status-right`:
+
+```sh
+git clone https://github.com/tmux-revamped/tmux-pomodoro-revamped ~/.tmux/plugins/tmux-pomodoro-revamped
+```
+
+```tmux
+run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
+```
+
+## Usage
+
+Press `prefix + M-s` to start the timer. Press it again to pause, and again to resume.
+
+`#{pomodoro_status}` in `status-left` or `status-right` renders the phase color, the `MM:SS` countdown and the `[interval/total]` counter, for example `23:20 [1/4]`. It renders nothing while no timer runs.
+
+Every render also writes these tmux options, which a theme or another plugin can read without running the script:
+
+| Option | Value |
+|:-------|:------|
+| `@pomodoro_status` | The rendered segment, the same text as `#{pomodoro_status}` |
+| `@pomodoro_phase` | `work`, `break` or `long_break` |
+| `@pomodoro_remaining` | Seconds left in the phase |
+| `@pomodoro_fraction` | Percent of the phase elapsed |
+| `@pomodoro_week` | A sparkline of work periods per weekday over the last 7 days, Sunday first, drawn with `_.-=+*%@` |
+| `@pomodoro_today` | Work periods finished today |
+
+The same actions run from a shell as `~/.tmux/plugins/tmux-pomodoro-revamped/src/pomodoro.sh <action>`, where the action is `toggle`, `cancel`, `skip`, `restart`, `menu` or `help`.
 
 ## Configuration
 
+Set any option in `~/.tmux.conf` before the plugin loads.
+
 | Option | Default | Meaning |
-|--------|---------|---------|
-| `@pomodoro_revamped_work` | `25` | work minutes |
-| `@pomodoro_revamped_break` | `5` | short break minutes |
-| `@pomodoro_revamped_long_break` | `15` | long break minutes |
-| `@pomodoro_revamped_intervals` | `4` | work periods before a long break |
-| `@pomodoro_revamped_show_interval` | `1` | set to `0` to hide the `[n/N]` counter |
-| `@pomodoro_revamped_notifications` | `1` | set to `0` to disable desktop notifications |
-| `@pomodoro_revamped_on_work` | unset | shell command run when a work phase begins |
-| `@pomodoro_revamped_on_break` | unset | shell command run when a short break begins |
-| `@pomodoro_revamped_on_long_break` | unset | shell command run when a long break begins |
-| `@pomodoro_revamped_show_progress` | `0` | set to `1` to prepend an ASCII progress bar |
-| `@pomodoro_revamped_progress_width` | `8` | progress bar width in cells |
-| `@pomodoro_revamped_bar_filled` | `#` | filled progress-bar glyph |
-| `@pomodoro_revamped_bar_empty` | `-` | empty progress-bar glyph |
-| `@pomodoro_revamped_show_finish` | `0` | set to `1` to append `ends HH:MM` |
-| `@pomodoro_revamped_show_goal` | `0` | set to `1` to append the daily `done/goal` counter |
-| `@pomodoro_revamped_goal` | `6` | daily focus-session goal |
-| `@pomodoro_revamped_warn_seconds` | `0` | seconds before a phase ends to warn once; `0` disables |
-| `@pomodoro_revamped_quiet_hours` | unset | window like `22:00-07:00` that suppresses alerts |
-| `@pomodoro_revamped_bell` | `0` | set to `1` to ring the terminal bell on a phase change |
-| `@pomodoro_revamped_on_cycle` | unset | shell command run when a long break (cycle) begins |
-| `@pomodoro_revamped_on_warn` | unset | shell command run at the end-of-phase warning |
-| `@pomodoro_revamped_restart_key` | empty | restart-phase key, unbound until set, for example `R` |
-| `@pomodoro_revamped_menu_key` | empty | control-menu key, unbound until set, for example `o` |
-| `@pomodoro_revamped_help_key` | empty | help-popup key, unbound until set, for example `?` |
-| `@pomodoro_revamped_toggle_key` | `M-s` | start / pause / resume key; `off` unbinds it |
-| `@pomodoro_revamped_cancel_key` | empty | cancel key, unbound until set, for example `P` |
-| `@pomodoro_revamped_skip_key` | empty | skip-phase key, unbound until set, for example `_` |
-| `@pomodoro_revamped_{work,break,long_break}_color` | red, green, blue | per-phase color |
-| `@pomodoro_revamped_{work,break,long_break}_icon` | empty | per-phase glyph, for example a Nerd Font tomato or coffee cup |
-| `@pomodoro_revamped_pause_text` | ` paused` | text appended while paused |
+|:-------|:--------|:--------|
+| `@pomodoro_revamped_work` | `25` | Work minutes |
+| `@pomodoro_revamped_break` | `5` | Short break minutes |
+| `@pomodoro_revamped_long_break` | `15` | Long break minutes |
+| `@pomodoro_revamped_intervals` | `4` | Work periods before a long break |
+| `@pomodoro_revamped_show_interval` | `1` | `0` hides the `[n/N]` counter |
+| `@pomodoro_revamped_show_progress` | `0` | `1` puts a progress bar before the countdown |
+| `@pomodoro_revamped_progress_width` | `8` | Progress bar width in cells |
+| `@pomodoro_revamped_bar_filled` | `#` | Filled progress bar character |
+| `@pomodoro_revamped_bar_empty` | `-` | Empty progress bar character |
+| `@pomodoro_revamped_show_finish` | `0` | `1` appends `ends HH:MM` |
+| `@pomodoro_revamped_show_goal` | `0` | `1` appends today's `done/goal` counter |
+| `@pomodoro_revamped_goal` | `6` | Daily goal of work periods |
+| `@pomodoro_revamped_pause_text` | ` paused` | Text appended while paused |
+| `@pomodoro_revamped_work_color` | `#[fg=red]` | Style of the work phase |
+| `@pomodoro_revamped_break_color` | `#[fg=green]` | Style of the short break |
+| `@pomodoro_revamped_long_break_color` | `#[fg=blue]` | Style of the long break |
+| `@pomodoro_revamped_work_icon` | empty | Text before the work countdown, such as a Nerd Font tomato |
+| `@pomodoro_revamped_break_icon` | empty | Text before the short break countdown |
+| `@pomodoro_revamped_long_break_icon` | empty | Text before the long break countdown |
+| `@pomodoro_revamped_notifications` | `1` | `0` turns desktop notifications off |
+| `@pomodoro_revamped_bell` | `0` | `1` rings the bell on every attached client at a phase change |
+| `@pomodoro_revamped_quiet_hours` | empty | A range such as `22:00-07:00` that silences notifications and the bell |
+| `@pomodoro_revamped_warn_seconds` | `0` | Seconds before a phase ends to warn once. `0` turns the warning off |
+| `@pomodoro_revamped_on_work` | empty | Shell command run when a work period begins |
+| `@pomodoro_revamped_on_break` | empty | Shell command run when a short break begins |
+| `@pomodoro_revamped_on_long_break` | empty | Shell command run when a long break begins |
+| `@pomodoro_revamped_on_cycle` | empty | Shell command run when a long break begins, after `on_long_break` |
+| `@pomodoro_revamped_on_warn` | empty | Shell command run at the end-of-phase warning |
+| `@pomodoro_revamped_toggle_key` | `M-s` | Prefix key that starts, pauses and resumes. `off` unbinds it |
+| `@pomodoro_revamped_cancel_key` | empty | Prefix key that cancels the timer |
+| `@pomodoro_revamped_skip_key` | empty | Prefix key that skips to the next phase |
+| `@pomodoro_revamped_restart_key` | empty | Prefix key that restarts the current phase |
+| `@pomodoro_revamped_menu_key` | empty | Prefix key that opens the control menu |
+| `@pomodoro_revamped_help_key` | empty | Prefix key that opens the help popup |
 
 ### Internal state
 
 The plugin manages these options itself. Do not set them.
 
 | Option | Holds |
-|--------|-------|
-| `@pomodoro_revamped_state` | timer state: empty when idle, `running` or `paused` |
-| `@pomodoro_revamped_start` | epoch seconds the timer started, shifted forward or back by restart and skip |
-| `@pomodoro_revamped_paused_at` | epoch seconds the current pause began, `0` while running |
-| `@pomodoro_revamped_paused_total` | seconds spent paused since the timer started |
-| `@pomodoro_revamped_last_phase` | the phase last seen, so a phase change fires its hooks and alert once |
-| `@pomodoro_revamped_transition_claim` | a per-process token that decides which concurrent status refresh handles a phase change |
-| `@pomodoro_revamped_warned` | `1` once the end-of-phase warning fired for the current phase |
-| `@pomodoro_revamped_week_counts` | completed work periods per weekday, seven comma-separated slots from Sunday |
-| `@pomodoro_revamped_week_day` | the epoch day of the last recorded work period, so stale weekday slots are reset |
+|:-------|:------|
+| `@pomodoro_revamped_state` | Empty while idle, `running` or `paused` |
+| `@pomodoro_revamped_start` | Epoch seconds the timer started, moved by skip and restart |
+| `@pomodoro_revamped_paused_at` | Epoch seconds the current pause began, `0` while running |
+| `@pomodoro_revamped_paused_total` | Seconds spent paused since the timer started |
+| `@pomodoro_revamped_last_phase` | The phase seen last, so a phase change fires its hooks and alerts once |
+| `@pomodoro_revamped_transition_claim` | A token that decides which concurrent status refresh handles a phase change |
+| `@pomodoro_revamped_warned` | `1` once the warning fired for the current phase |
+| `@pomodoro_revamped_week_counts` | Work periods per weekday, 7 comma-separated values from Sunday |
+| `@pomodoro_revamped_week_day` | The day number of the last recorded work period, so stale weekdays are reset |
 
-## Compatibility
+## Key bindings
 
-Works on tmux 3.2 and later, which the help popup needs, on Linux (x86_64 and arm64) and macOS (Intel and Apple Silicon). Notifications use `osascript` on macOS and `notify-send` on Linux when present; the timer itself needs neither.
+| Key | Action | Option |
+|:----|:-------|:-------|
+| `prefix + M-s` | Start, pause or resume | `@pomodoro_revamped_toggle_key` |
+| unbound | Cancel | `@pomodoro_revamped_cancel_key` |
+| unbound | Skip to the next phase | `@pomodoro_revamped_skip_key` |
+| unbound | Restart the current phase | `@pomodoro_revamped_restart_key` |
+| unbound | Open the control menu | `@pomodoro_revamped_menu_key` |
+| unbound | Open the help popup | `@pomodoro_revamped_help_key` |
+
+`M-s` is the one key the tmux-revamped family allocates to this plugin. Before 2.0.0 the toggle was `p` and the other actions were bound to `P`, `_`, `R`, `o` and `?`. To get one back, set its option:
+
+```tmux
+set -g @pomodoro_revamped_menu_key 'o'
+```
+
+## How it works
+
+**One start time.** The timer stores the epoch second it started and the seconds it spent paused. Each render subtracts both from the current time and walks the cycle of work periods, short breaks and the long break to find the phase and the seconds left. Skip moves the start time back by the seconds left. Restart moves it forward by the seconds already spent in the phase.
+
+**No files.** Every value lives in tmux server options, so nothing is written under `/tmp` and nothing is left to clean up. The weekly tally is a 7-slot ring in an option.
+
+**Rendering.** The entry point replaces `#{pomodoro_status}` with a `#()` call to [`src/pomodoro.sh`](src/pomodoro.sh), so the countdown advances once per `status-interval`. No background process runs.
+
+**Phase changes.** Each attached client refreshes the status line, so several renders can notice the same phase change. A single conditional tmux command claims the change, and only the claiming render counts the work period, runs the hooks and sends the alerts. Hooks run through `run-shell -b`, so a slow command never holds the status line.
 
 ## Development
 
-```bash
-make test    # bats suite
-make lint    # shellcheck
-make coverage  # kcov line coverage on Linux
-```
+| Command | What it does |
+|:--------|:-------------|
+| `make test` | Runs the bats suite |
+| `make lint` | Runs shellcheck on every shell file |
+| `make coverage` | Measures line coverage with kcov and fails below 95 percent, on Linux |
 
-The timer math lives in [`src/lib/pomodoro/pomodoro.sh`](src/lib/pomodoro/pomodoro.sh) as pure functions, the full work/break/long-break timeline as arithmetic over the elapsed seconds, validated with fixtures and no real clock.
+The suite needs `bats-core` and tmux.
 
 ## License
 
-[MIT](LICENSE), copyright Gustavo Franco.
+[MIT](LICENSE)
 
 <!-- family:begin -->
 
@@ -157,26 +196,26 @@ memory, and `family/bin/sweep` is how it is discharged.
 | [`tmux-bluetooth-revamped`](https://github.com/tmux-revamped/tmux-bluetooth-revamped) | Every connected Bluetooth device and its battery in your tmux status bar, without blocking the render |
 | [`tmux-cpu-revamped`](https://github.com/tmux-revamped/tmux-cpu-revamped) | CPU load, temperature, and frequency in your tmux status bar, without ever blocking the render |
 | [`tmux-disk-revamped`](https://github.com/tmux-revamped/tmux-disk-revamped) | Disk usage for your tmux status bar, without ever blocking the status render |
-| [`tmux-extract-revamped`](https://github.com/tmux-revamped/tmux-extract-revamped) | Fuzzy-grab any URL, path, or word off the screen and paste it, pure shell, no Python |
-| [`tmux-fzf-revamped`](https://github.com/tmux-revamped/tmux-fzf-revamped) | Jump to any session, window, or pane, or kill it, from one fzf popup |
-| [`tmux-git-revamped`](https://github.com/tmux-revamped/tmux-git-revamped) | Git repository status in your tmux status bar, without ever blocking the render |
-| [`tmux-gpu-revamped`](https://github.com/tmux-revamped/tmux-gpu-revamped) | GPU load, temperature, frequency, and memory for your tmux status bar |
-| [`tmux-kube-revamped`](https://github.com/tmux-revamped/tmux-kube-revamped) | Current Kubernetes context and namespace in your tmux status bar, async, kubectl-free, never blocking |
+| [`tmux-extract-revamped`](https://github.com/tmux-revamped/tmux-extract-revamped) | Pick a URL, path, hash or any other token off the screen with fzf and type it at the cursor, in pure shell |
+| [`tmux-fzf-revamped`](https://github.com/tmux-revamped/tmux-fzf-revamped) | Switch to, kill, rename or create tmux sessions, windows and panes from fzf pickers in a popup |
+| [`tmux-git-revamped`](https://github.com/tmux-revamped/tmux-git-revamped) | Show the active pane's git branch, changes and provider counts in the tmux status bar without blocking it |
+| [`tmux-gpu-revamped`](https://github.com/tmux-revamped/tmux-gpu-revamped) | GPU load, temperature, clock, power and memory in the tmux status bar, from NVIDIA, AMD, Intel and Apple GPUs |
+| [`tmux-kube-revamped`](https://github.com/tmux-revamped/tmux-kube-revamped) | Current Kubernetes context and namespace in the tmux status bar, parsed from kubeconfig without kubectl |
 | [`tmux-launcher-revamped`](https://github.com/tmux-revamped/tmux-launcher-revamped) | Launch any TUI app in a popup or a window, scoped to the current pane's directory, with one configurable bindi |
 | [`tmux-logging-revamped`](https://github.com/tmux-revamped/tmux-logging-revamped) | Capture any pane to a file: live logging, full scrollback, or a one-shot screenshot |
 | [`tmux-music-revamped`](https://github.com/tmux-revamped/tmux-music-revamped) | Now playing in your tmux status bar, without ever blocking the status render |
 | [`tmux-network-revamped`](https://github.com/tmux-revamped/tmux-network-revamped) | Network throughput in your tmux status bar, without ever blocking the render |
 | [`tmux-pain-control-revamped`](https://github.com/tmux-revamped/tmux-pain-control-revamped) | Standard pane and window management bindings for tmux, version aware, vim friendly, and fully configurable |
-| [`tmux-persist-revamped`](https://github.com/tmux-revamped/tmux-persist-revamped) | Save, auto-save, and restore your whole tmux environment, one plugin, no status-line tricks |
-| [`tmux-plugin-template`](https://github.com/tmux-revamped/tmux-plugin-template) | A template for building non-blocking tmux status plugins |
-| [`tmux-pomodoro-revamped`](https://github.com/tmux-revamped/tmux-pomodoro-revamped) | **this plugin**, A Pomodoro timer in your tmux status bar, with zero temp files: all state lives in tmux options |
-| [`tmux-ram-revamped`](https://github.com/tmux-revamped/tmux-ram-revamped) | RAM usage for your tmux status bar, without ever blocking the status render |
-| [`tmux-reorder-revamped`](https://github.com/tmux-revamped/tmux-reorder-revamped) | Drag a window tab on the status bar with the mouse to move that window |
-| [`tmux-scroll-revamped`](https://github.com/tmux-revamped/tmux-scroll-revamped) | Mouse wheel that does the right thing: scroll the app directly, copy-mode everywhere else. No app names to con |
-| [`tmux-sensible-revamped`](https://github.com/tmux-revamped/tmux-sensible-revamped) | Sensible tmux defaults that normalize behavior across every tmux version, OS, and terminal, without clobbering |
-| [`tmux-tiling-revamped`](https://github.com/tmux-revamped/tmux-tiling-revamped) | BSP tiling window management for tmux. Eight layouts, nineteen operations, zero dependencies |
-| [`tmux-time-revamped`](https://github.com/tmux-revamped/tmux-time-revamped) | Local clock and world clocks in your tmux status bar, without ever blocking the render |
-| [`tmux-weather-revamped`](https://github.com/tmux-revamped/tmux-weather-revamped) | Weather in your tmux status bar, fetched in the background so the render never waits on the network |
+| [`tmux-persist-revamped`](https://github.com/tmux-revamped/tmux-persist-revamped) | Save every tmux session, window and pane, auto-save on a timer, and restore it all after a reboot |
+| [`tmux-plugin-template`](https://github.com/tmux-revamped/tmux-plugin-template) | The starting point for a tmux-revamped plugin: shared library, bats harness, CI and family tooling |
+| [`tmux-pomodoro-revamped`](https://github.com/tmux-revamped/tmux-pomodoro-revamped) | **this plugin**, A Pomodoro timer in the tmux status bar that keeps all of its state in tmux options, with no temp files |
+| [`tmux-ram-revamped`](https://github.com/tmux-revamped/tmux-ram-revamped) | RAM, swap and memory pressure in the tmux status bar, sampled in the background so the render never waits |
+| [`tmux-reorder-revamped`](https://github.com/tmux-revamped/tmux-reorder-revamped) | Drag a window tab along the tmux status bar with the mouse to move that window |
+| [`tmux-scroll-revamped`](https://github.com/tmux-revamped/tmux-scroll-revamped) | Send the mouse wheel to apps that scroll themselves and into tmux copy-mode everywhere else |
+| [`tmux-sensible-revamped`](https://github.com/tmux-revamped/tmux-sensible-revamped) | Sensible tmux defaults, gated by tmux version and terminal, that leave the options you set alone |
+| [`tmux-tiling-revamped`](https://github.com/tmux-revamped/tmux-tiling-revamped) | Tiling window management for tmux: eight layouts including BSP dwindle and spiral, with layout undo |
+| [`tmux-time-revamped`](https://github.com/tmux-revamped/tmux-time-revamped) | Local and world clocks for the tmux status bar, colored by time of day, with countdowns and a DST warning |
+| [`tmux-weather-revamped`](https://github.com/tmux-revamped/tmux-weather-revamped) | Weather for the tmux status bar from wttr.in, fetched in the background so the status line never waits |
 
 ### Checking an installation
 
