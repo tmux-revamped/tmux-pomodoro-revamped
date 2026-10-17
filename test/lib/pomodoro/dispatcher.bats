@@ -351,3 +351,16 @@ teardown() {
   run main bogus
   [[ -z "${output}" ]]
 }
+
+@test "pomodoro.sh - menu items quote a plugin path containing a space" {
+  # Arrange
+  export POMO_SELF="/opt/my plugins/pomodoro.sh"
+  _tmux() { printf '%s\n' "$@" > "${BATS_TEST_TMPDIR}/menu"; }
+
+  # Act
+  pomodoro_menu
+
+  # Assert
+  [[ "$(sed -n 6p "${BATS_TEST_TMPDIR}/menu")" == 'run-shell "/opt/my\\ plugins/pomodoro.sh toggle"' ]] || false
+  [[ "$(sed -n 15p "${BATS_TEST_TMPDIR}/menu")" == 'run-shell "/opt/my\\ plugins/pomodoro.sh cancel"' ]]
+}

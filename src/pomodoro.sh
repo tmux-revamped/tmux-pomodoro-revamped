@@ -268,13 +268,27 @@ pomodoro_restart() {
   set_tmux_option "@pomodoro_revamped_warned" ""
 }
 
+_pomo_tmux_dq() {
+  local in="${1}" out="" ch i
+  for (( i = 0; i < ${#in}; i++ )); do
+    ch="${in:i:1}"
+    case "${ch}" in
+      '\'|'"'|'$') out="${out}\\${ch}" ;;
+      *) out="${out}${ch}" ;;
+    esac
+  done
+  printf '%s' "${out}"
+}
+
 # pomodoro_menu -> a control menu of the timer actions, via the _tmux seam.
 pomodoro_menu() {
+  local self
+  self="$(_pomo_tmux_dq "$(printf '%q' "${POMO_SELF}")")"
   _tmux display-menu -T "Pomodoro" \
-    "Start / Pause" "" "run-shell \"${POMO_SELF} toggle\"" \
-    "Skip phase" "" "run-shell \"${POMO_SELF} skip\"" \
-    "Restart phase" "" "run-shell \"${POMO_SELF} restart\"" \
-    "Cancel" "" "run-shell \"${POMO_SELF} cancel\""
+    "Start / Pause" "" "run-shell \"${self} toggle\"" \
+    "Skip phase" "" "run-shell \"${self} skip\"" \
+    "Restart phase" "" "run-shell \"${self} restart\"" \
+    "Cancel" "" "run-shell \"${self} cancel\""
 }
 
 # pomodoro_help -> a help popup listing the keys and tokens, via the _tmux seam.
