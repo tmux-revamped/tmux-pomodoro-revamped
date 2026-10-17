@@ -97,6 +97,22 @@ Then press `prefix + I`, and add `#{pomodoro_status}` to your status line.
 | `@pomodoro_revamped_{work,break,long_break}_icon` | empty | per-phase glyph, for example a Nerd Font tomato or coffee cup |
 | `@pomodoro_revamped_pause_text` | ` paused` | text appended while paused |
 
+### Internal state
+
+The plugin manages these options itself. Do not set them.
+
+| Option | Holds |
+|--------|-------|
+| `@pomodoro_revamped_state` | timer state: empty when idle, `running` or `paused` |
+| `@pomodoro_revamped_start` | epoch seconds the timer started, shifted forward or back by restart and skip |
+| `@pomodoro_revamped_paused_at` | epoch seconds the current pause began, `0` while running |
+| `@pomodoro_revamped_paused_total` | seconds spent paused since the timer started |
+| `@pomodoro_revamped_last_phase` | the phase last seen, so a phase change fires its hooks and alert once |
+| `@pomodoro_revamped_transition_claim` | a per-process token that decides which concurrent status refresh handles a phase change |
+| `@pomodoro_revamped_warned` | `1` once the end-of-phase warning fired for the current phase |
+| `@pomodoro_revamped_week_counts` | completed work periods per weekday, seven comma-separated slots from Sunday |
+| `@pomodoro_revamped_week_day` | the epoch day of the last recorded work period, so stale weekday slots are reset |
+
 ## Compatibility
 
 Works on tmux 3.2 and later, which the help popup needs, on Linux (x86_64 and arm64) and macOS (Intel and Apple Silicon). Notifications use `osascript` on macOS and `notify-send` on Linux when present; the timer itself needs neither.
