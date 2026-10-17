@@ -151,12 +151,16 @@ teardown() {
 }
 
 @test "pomodoro.sh - a phase change records a completed work period" {
+  # Arrange
   set_tmux_option @pomodoro_revamped_state running
   set_tmux_option @pomodoro_revamped_last_phase work
   set_tmux_option @pomodoro_revamped_start -400
+
+  # Act
   run main status
-  # _now 1100 -> epoch day 0 -> index 4
-  [[ "$(get_tmux_option @pomodoro_revamped_week_counts "")" == "0,0,0,0,1,0,0" ]]
+
+  # Assert
+  [[ "$(get_tmux_option @pomodoro_revamped_week_counts "")" == "0,0,0,0,1,0,0" ]] || false
   [[ "$(get_tmux_option @pomodoro_revamped_week_day "")" == "0" ]]
 }
 

@@ -1,16 +1,8 @@
 #!/usr/bin/env bash
-#
-# pomodoro.sh: pure timer math for tmux-pomodoro-revamped.
-#
-# The whole timeline is a pure function of the elapsed seconds and the work, break,
-# and long-break durations, so there is no per-tick state to mutate and nothing to
-# store in a temp file. The running state lives in tmux server options; this file
-# only does arithmetic and is fully fixture-testable.
 
 [[ -n "${_POMODORO_REVAMPED_LOADED:-}" ]] && return 0
 _POMODORO_REVAMPED_LOADED=1
 
-# pomodoro_format SECONDS -> MM:SS, clamped at zero.
 pomodoro_format() {
   local s="${1}"
   [[ "${s}" =~ ^-?[0-9]+$ ]] || s=0
@@ -18,10 +10,6 @@ pomodoro_format() {
   printf '%02d:%02d' "$(( s / 60 ))" "$(( s % 60 ))"
 }
 
-# pomodoro_phase_at ELAPSED WORK BREAK LONG INTERVALS -> "PHASE REMAINING INDEX".
-# PHASE is work, break, or long_break. REMAINING is seconds left in the phase.
-# INDEX is the work-period number, 1..INTERVALS. One round is INTERVALS work
-# periods separated by short breaks and closed by a long break, then it repeats.
 pomodoro_phase_at() {
   local e="${1}" w="${2}" b="${3}" l="${4}" n="${5}"
   (( e < 0 )) && e=0
@@ -39,8 +27,6 @@ pomodoro_phase_at() {
   echo "work ${w} 1"
 }
 
-# pomodoro_elapsed NOW START PAUSED_TOTAL PAUSED_AT -> active seconds since START,
-# excluding paused time. PAUSED_AT is 0 when running, else the pause epoch.
 pomodoro_elapsed() {
   local now="${1}" start="${2}" paused_total="${3}" paused_at="${4}"
   local e=$(( now - start - paused_total ))
@@ -49,8 +35,6 @@ pomodoro_elapsed() {
   echo "${e}"
 }
 
-# pomodoro_percent LEN REMAINING -> integer 0..100, the fraction of the phase that
-# has elapsed. A zero or invalid length yields 0 so callers never divide by zero.
 pomodoro_percent() {
   local len="${1}" rem="${2}"
   [[ "${len}" =~ ^[0-9]+$ ]] || len=0
@@ -61,8 +45,6 @@ pomodoro_percent() {
   echo $(( (len - rem) * 100 / len ))
 }
 
-# pomodoro_bar PERCENT WIDTH FILLED EMPTY -> an ASCII progress bar of WIDTH cells.
-# FILLED and EMPTY default to "#" and "-" so no Nerd Font is needed.
 pomodoro_bar() {
   local pct="${1}" width="${2}" filled="${3:-#}" empty="${4:--}"
   [[ "${pct}" =~ ^[0-9]+$ ]] || pct=0
@@ -76,8 +58,6 @@ pomodoro_bar() {
   echo "${out}"
 }
 
-# pomodoro_sparkline N... -> a glyph-free ASCII ramp, one character per count,
-# scaled against the largest count. Used for the weekly focus tally.
 pomodoro_sparkline() {
   local ramp='_.-=+*%@' max=0 v out='' idx
   for v in "$@"; do
@@ -93,15 +73,11 @@ pomodoro_sparkline() {
   echo "${out}"
 }
 
-# pomodoro_hm_to_min HH:MM -> minutes since midnight. Forces base 10 so 08 and 09
-# do not read as invalid octal.
 pomodoro_hm_to_min() {
   local hm="${1}"
   echo $(( 10#${hm%:*} * 60 + 10#${hm#*:} ))
 }
 
-# pomodoro_in_quiet NOW WINDOW -> 0 when the HH:MM NOW falls inside WINDOW
-# ("22:00-07:00"), handling windows that wrap past midnight. 1 otherwise.
 pomodoro_in_quiet() {
   local now="${1}" win="${2}"
   [[ "${now}" =~ ^[0-9]{1,2}:[0-9]{2}$ ]] || return 1
@@ -121,16 +97,12 @@ pomodoro_in_quiet() {
   return 1
 }
 
-# pomodoro_week_index DAYNUM -> 0..6 with 0 = Sunday, given an epoch day number
-# (floor(epoch / 86400)). Epoch day 0 is a Thursday, hence the +4 offset.
 pomodoro_week_index() {
   local d="${1}"
   [[ "${d}" =~ ^-?[0-9]+$ ]] || d=0
   echo $(( ( (d % 7) + 4 + 7 ) % 7 ))
 }
 
-# pomodoro_week_today COUNTS INDEX -> the count stored in slot INDEX of a 7-field
-# comma-separated ring, or 0 when missing.
 pomodoro_week_today() {
   local counts="${1}" idx="${2}"
   [[ "${idx}" =~ ^[0-9]+$ ]] || idx=0
@@ -144,9 +116,6 @@ pomodoro_week_today() {
   echo "${v}"
 }
 
-# pomodoro_week_record COUNTS LAST CUR -> "NEWCOUNTS CUR". Records one completed
-# work period for epoch-day CUR in a rolling 7-day ring, zeroing the slots of any
-# days that elapsed since epoch-day LAST so the tally only ever covers a week.
 pomodoro_week_record() {
   local counts="${1}" last="${2}" cur="${3}"
   [[ "${cur}" =~ ^-?[0-9]+$ ]] || cur=0

@@ -1,12 +1,4 @@
 #!/usr/bin/env bash
-#
-# pomodoro.sh: command dispatcher for tmux-pomodoro-revamped.
-#
-# Usage: pomodoro.sh status | toggle | cancel | skip | restart | menu | help
-#
-# All timer state lives in tmux server options: the start epoch, accumulated pause
-# time, and the running/paused flag. The current phase is computed from elapsed
-# time on demand, so there is no background process and no temp file.
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 POMO_SELF="${BASH_SOURCE[0]}"
@@ -18,8 +10,6 @@ source "${PLUGIN_DIR}/src/lib/pomodoro/pomodoro.sh"
 # shellcheck source=/dev/null
 source "${PLUGIN_DIR}/src/lib/pomodoro/render.sh"
 
-# Host-probe seams. Tests override these so no real notification, bell, popup, or
-# clock call is ever made during the suite.
 _now() { date +%s 2>/dev/null || echo 0; }
 _notify() {
   if command -v osascript >/dev/null 2>&1; then
@@ -28,10 +18,7 @@ _notify() {
     notify-send "${1}" "${2}" >/dev/null 2>&1
   fi
 }
-# _fmt_hm EPOCH -> "HH:MM" in local time. BSD date uses -r, GNU date uses -d.
 _fmt_hm() { date -r "${1}" +%H:%M 2>/dev/null || date -d "@${1}" +%H:%M 2>/dev/null || echo "??:??"; }
-# _bell -> ring the terminal bell, an SSH-friendly fallback when no desktop
-# notifier exists. The bell is written to the tty of every attached client.
 _bell() {
   local tty
   while IFS= read -r tty; do
@@ -39,11 +26,7 @@ _bell() {
   done < <(_tmux list-clients -F '#{client_tty}' 2>/dev/null)
   return 0
 }
-# _tmux -> the single seam every interactive tmux call routes through (display-menu,
-# display-popup). Tests mock it so a real menu or popup is never launched.
 _tmux() { tmux "$@"; }
-# _run_hook CMD -> run a user transition command in the background, managed by
-# tmux so the status render never waits on it.
 _run_hook() { tmux run-shell -b -- "${1}" 2>/dev/null; }
 
 _pomo_minutes() {
@@ -62,7 +45,6 @@ _intervals() {
   echo "${n}"
 }
 
-# _pomo_phase_len PHASE -> the configured length in seconds for PHASE.
 _pomo_phase_len() {
   case "${1}" in
     work)       _work_secs ;;
@@ -72,7 +54,6 @@ _pomo_phase_len() {
   esac
 }
 
-# _pomo_current -> "PHASE REMAINING INDEX STATE", or non-zero when idle.
 _pomo_current() {
   local state start ptotal pat now elapsed
   state=$(get_tmux_option "@pomodoro_revamped_state" "")
@@ -88,8 +69,6 @@ _pomo_current() {
   echo "${phase} ${remaining} ${index} ${state}"
 }
 
-# _pomo_run_hook PHASE -> run the configured transition command for PHASE, if any.
-# PHASE also covers the synthetic "cycle" and "warn" hook names.
 _pomo_run_hook() {
   local cmd
   cmd=$(get_tmux_option "@pomodoro_revamped_on_${1}" "")
@@ -97,8 +76,6 @@ _pomo_run_hook() {
   return 0
 }
 
-# _pomo_in_quiet -> 0 when the current local time falls inside the configured
-# quiet-hours window. Timing keeps running; only alerts are suppressed.
 _pomo_in_quiet() {
   local win
   win=$(get_tmux_option "@pomodoro_revamped_quiet_hours" "")
@@ -106,8 +83,6 @@ _pomo_in_quiet() {
   pomodoro_in_quiet "$(_fmt_hm "$(_now)")" "${win}"
 }
 
-# _pomo_alert PHASE -> fire the desktop notification and optional bell for a phase
-# change, both suppressed during quiet hours.
 _pomo_alert() {
   _pomo_in_quiet && return 0
   [[ "$(get_tmux_option "@pomodoro_revamped_bell" "0")" == "1" ]] && _bell
@@ -119,7 +94,6 @@ _pomo_alert() {
   esac
 }
 
-# _pomo_record_week -> add one completed work period to the rolling weekly ring.
 _pomo_record_week() {
   local counts last cur res
   counts=$(get_tmux_option "@pomodoro_revamped_week_counts" "0,0,0,0,0,0,0")
@@ -130,7 +104,6 @@ _pomo_record_week() {
   set_tmux_option "@pomodoro_revamped_week_day" "${res##* }"
 }
 
-# _pomo_today_count -> completed work periods recorded for the current day.
 _pomo_today_count() {
   local counts idx
   counts=$(get_tmux_option "@pomodoro_revamped_week_counts" "0,0,0,0,0,0,0")
@@ -146,9 +119,6 @@ _pomo_claim_phase() {
   [[ "$(get_tmux_option "@pomodoro_revamped_transition_claim" "")" == "${claim_id}" ]]
 }
 
-# _pomo_maybe_notify PHASE -> on a phase change, record the finished work period,
-# run the transition and cycle hooks, and fire the alert. The warning flag resets
-# on every change so the next phase can warn once.
 _pomo_maybe_notify() {
   local last
   last=$(get_tmux_option "@pomodoro_revamped_last_phase" "")
@@ -162,8 +132,6 @@ _pomo_maybe_notify() {
   _pomo_alert "${1}"
 }
 
-# _pomo_warn PHASE REMAINING STATE -> once per phase, alert when less than the
-# configured number of seconds remain. Disabled by default (warn_seconds 0).
 _pomo_warn() {
   local phase="${1}" remaining="${2}" state="${3}" w
   [[ "${state}" == "paused" ]] && return 0
@@ -179,8 +147,6 @@ _pomo_warn() {
   _notify "Pomodoro" "Less than a minute left"
 }
 
-# _pomo_export_tokens PHASE REMAINING LEN -> publish machine-readable options that
-# sibling plugins and themes can read without invoking the script.
 _pomo_export_tokens() {
   local phase="${1}" remaining="${2}" len="${3}" counts spark
   set_tmux_option "@pomodoro_phase" "${phase}"
@@ -193,7 +159,6 @@ _pomo_export_tokens() {
   set_tmux_option "@pomodoro_today" "$(_pomo_today_count)"
 }
 
-# _pomo_clear_tokens -> wipe every exported option when the timer is idle.
 _pomo_clear_tokens() {
   set_tmux_option "@pomodoro_status" ""
   set_tmux_option "@pomodoro_phase" ""
@@ -221,7 +186,6 @@ pomodoro_status() {
   fi
   local segment
   segment="$(pomodoro_render_segment "${phase}" "${remaining}" "${index}" "$(_intervals)" "${paused}" "${len}" "${finish}" "${done}" "${goal}")"
-  # Export the rendered segment so a theme can read it via #{@pomodoro_status}.
   set_tmux_option "@pomodoro_status" "${segment}"
   _pomo_export_tokens "${phase}" "${remaining}" "${len}"
   printf '%s\n' "${segment}"
@@ -269,8 +233,6 @@ pomodoro_skip() {
   set_tmux_option "@pomodoro_revamped_start" "$(( start - remaining ))"
 }
 
-# pomodoro_restart -> rewind the current phase to its beginning by advancing the
-# start epoch past the time already spent in this phase.
 pomodoro_restart() {
   local cur
   cur="$(_pomo_current)" || return 0
@@ -294,7 +256,6 @@ _pomo_tmux_dq() {
   printf '%s' "${out}"
 }
 
-# pomodoro_menu -> a control menu of the timer actions, via the _tmux seam.
 pomodoro_menu() {
   local self
   self="$(_pomo_tmux_dq "$(printf '%q' "${POMO_SELF}")")"
@@ -305,7 +266,6 @@ pomodoro_menu() {
     "Cancel" "" "run-shell \"${self} cancel\""
 }
 
-# pomodoro_help -> a help popup listing the keys and tokens, via the _tmux seam.
 pomodoro_help() {
   _tmux display-popup -E "printf '%s\\n' 'tmux-pomodoro-revamped' 'toggle, cancel, skip, restart, menu, help' 'tokens: ##{@pomodoro_status} ##{@pomodoro_week}'; read -r"
 }

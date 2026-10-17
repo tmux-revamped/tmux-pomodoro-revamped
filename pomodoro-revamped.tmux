@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-#
-# pomodoro-revamped.tmux: TPM entry point.
-#
-# Binds the timer controls and replaces #{pomodoro_status} in the status line with
-# a call to the dispatcher. The phase is computed from stored epochs, so the
-# render never waits and no temp file is touched.
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POMO_CMD="${CURRENT_DIR}/src/pomodoro.sh"

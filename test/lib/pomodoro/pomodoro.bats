@@ -118,15 +118,37 @@ teardown() {
   [[ "$(pomodoro_week_today "1,2,3,4,5,6,7" junk)" == "1" ]]
 }
 
-@test "pomodoro_week_record increments today on the same day" {
-  # epoch day 3 maps to index 0 (Sunday)
-  [[ "$(pomodoro_week_record "0,0,0,0,0,0,0" 3 3)" == "1,0,0,0,0,0,0 3" ]]
-  [[ "$(pomodoro_week_record "1,0,0,0,0,0,0" 3 3)" == "2,0,0,0,0,0,0 3" ]]
+@test "pomodoro_week_record increments an empty today on the same day" {
+  # Arrange
+  local counts="0,0,0,0,0,0,0"
+
+  # Act
+  run pomodoro_week_record "${counts}" 3 3
+
+  # Assert
+  [[ "${output}" == "1,0,0,0,0,0,0 3" ]]
+}
+
+@test "pomodoro_week_record increments a counted today on the same day" {
+  # Arrange
+  local counts="1,0,0,0,0,0,0"
+
+  # Act
+  run pomodoro_week_record "${counts}" 3 3
+
+  # Assert
+  [[ "${output}" == "2,0,0,0,0,0,0 3" ]]
 }
 
 @test "pomodoro_week_record zeroes the slot when the day advances" {
-  # day 3 (idx 0) -> day 4 (idx 1): only the new day's slot is fresh
-  [[ "$(pomodoro_week_record "5,9,0,0,0,0,0" 3 4)" == "5,1,0,0,0,0,0 4" ]]
+  # Arrange
+  local counts="5,9,0,0,0,0,0"
+
+  # Act
+  run pomodoro_week_record "${counts}" 3 4
+
+  # Assert
+  [[ "${output}" == "5,1,0,0,0,0,0 4" ]]
 }
 
 @test "pomodoro_week_record clears the whole ring after a week gap" {

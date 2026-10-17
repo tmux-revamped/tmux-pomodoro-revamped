@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-#
-# render.sh: format a pomodoro phase into a status segment.
 
 [[ -n "${_POMODORO_REVAMPED_RENDER_LOADED:-}" ]] && return 0
 _POMODORO_REVAMPED_RENDER_LOADED=1
@@ -11,7 +9,6 @@ source "${_POMO_RENDER_DIR}/../tmux/tmux-ops.sh"
 
 _POMO_RESET="#[default]"
 
-# Built-in per-phase colors. Icons default empty, so no Nerd Font is required.
 _pomo_default_color() {
   case "${1}" in
     work)       echo "#[fg=red]" ;;
@@ -21,12 +18,6 @@ _pomo_default_color() {
   esac
 }
 
-# pomodoro_render_segment PHASE REMAINING INDEX TOTAL PAUSED [LEN] [FINISH] [DONE]
-# [GOAL] -> the styled segment. LEN is the current phase length in seconds, used
-# for the optional progress bar. FINISH is a precomputed "HH:MM" end time. DONE and
-# GOAL drive the optional daily focus counter. All trailing arguments are optional
-# and their features stay off unless the matching @pomodoro_revamped_show_* option
-# is set, so the default segment is unchanged.
 pomodoro_render_segment() {
   local phase="${1}" remaining="${2}" index="${3}" total="${4}" paused="${5}"
   local len="${6:-0}" finish="${7:-}" done="${8:-}" goal="${9:-}"
