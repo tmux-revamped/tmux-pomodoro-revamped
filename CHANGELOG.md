@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   alerts fire, exactly once.
 - The help popup shows the `#{@pomodoro_status}` and `#{@pomodoro_week}`
   token names instead of their expanded values.
+- The README states the real tmux floor, 3.2, which the help popup needs.
 
 ## [1.2.0] - 2026-06-30
 

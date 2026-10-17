@@ -8,7 +8,7 @@
 
 </div>
 
-**work + breaks** · **no temp files** · **tmux 1.9 to 3.5** · **94** tests · **95%+** coverage
+**work + breaks** · **no temp files** · **tmux 3.2+** · **95%+** coverage
 
 A Pomodoro timer that counts down work and break intervals in the status bar. The whole timeline is computed from a single start epoch, so there is **no temp file** anywhere (the original keeps seven in `/tmp`), nothing to clean up, and no `/tmp` collision between users. State lives entirely in tmux server options, and the phase is computed on demand, so the render never spawns a background process.
 
@@ -99,7 +99,7 @@ Then press `prefix + I`, and add `#{pomodoro_status}` to your status line.
 
 ## Compatibility
 
-Works on every tmux version TPM supports, 1.9 and up, on Linux (x86_64 and arm64) and macOS (Intel and Apple Silicon). Notifications use `osascript` on macOS and `notify-send` on Linux when present; the timer itself needs neither.
+Works on tmux 3.2 and later, which the help popup needs, on Linux (x86_64 and arm64) and macOS (Intel and Apple Silicon). Notifications use `osascript` on macOS and `notify-send` on Linux when present; the timer itself needs neither.
 
 ## Development
 
