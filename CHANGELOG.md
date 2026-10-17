@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   so an install directory containing a space or a quote works.
 - The phase-change bell rings on the tty of every attached client. It wrote
   to `/dev/tty`, which a status job does not have, so it never rang.
+- A phase change is claimed with one conditional tmux command, so with
+  several attached clients the work period is counted, and the hooks and
+  alerts fire, exactly once.
 
 ## [1.2.0] - 2026-06-30
 

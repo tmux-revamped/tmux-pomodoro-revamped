@@ -382,3 +382,35 @@ teardown() {
   [[ "$(sed -n 6p "${BATS_TEST_TMPDIR}/menu")" == 'run-shell "/opt/my\\ plugins/pomodoro.sh toggle"' ]] || false
   [[ "$(sed -n 15p "${BATS_TEST_TMPDIR}/menu")" == 'run-shell "/opt/my\\ plugins/pomodoro.sh cancel"' ]]
 }
+
+@test "pomodoro.sh - two clients reading the same old phase record one transition" {
+  # Arrange
+  set_tmux_option @pomodoro_revamped_state running
+  set_tmux_option @pomodoro_revamped_last_phase work
+  set_tmux_option @pomodoro_revamped_start -400
+  eval "$(declare -f get_tmux_option | sed '1s/^get_tmux_option/_stored_tmux_option/')"
+  get_tmux_option() {
+    [[ "${1}" == "@pomodoro_revamped_last_phase" ]] && { echo work; return 0; }
+    _stored_tmux_option "$@"
+  }
+  main status >/dev/null
+
+  # Act
+  run main status
+
+  # Assert
+  [[ "$(get_tmux_option @pomodoro_revamped_week_counts "")" == "0,0,0,0,1,0,0" ]] || false
+  [ "$(wc -l < "${BATS_TEST_TMPDIR}/notified" | tr -d ' ')" -eq 1 ]
+}
+
+@test "pomodoro.sh - a phase change is claimed with one conditional tmux command" {
+  # Arrange
+  tmux() { [[ "${1}" == "if-shell" ]] && printf '%s\n' "$@" > "${BATS_TEST_TMPDIR}/claim"; return 0; }
+
+  # Act
+  _pomo_claim_phase work break || true
+
+  # Assert
+  [[ "$(sed -n 2,3p "${BATS_TEST_TMPDIR}/claim")" == "$(printf '%s\n' -F '#{==:#{@pomodoro_revamped_last_phase},work}')" ]] || false
+  [[ "$(sed -n 4p "${BATS_TEST_TMPDIR}/claim")" == "set-option -gq @pomodoro_revamped_last_phase break ; set-option -gq @pomodoro_revamped_transition_claim "* ]]
+}

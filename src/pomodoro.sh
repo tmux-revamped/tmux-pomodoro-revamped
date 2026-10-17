@@ -138,6 +138,14 @@ _pomo_today_count() {
   pomodoro_week_today "${counts}" "${idx}"
 }
 
+_pomo_claim_phase() {
+  local last="${1}" phase="${2}" claim_id
+  claim_id="$$-$(sh -c 'echo $$')-${RANDOM}"
+  tmux if-shell -F "#{==:#{@pomodoro_revamped_last_phase},${last}}" \
+    "set-option -gq @pomodoro_revamped_last_phase ${phase} ; set-option -gq @pomodoro_revamped_transition_claim ${claim_id}" 2>/dev/null
+  [[ "$(get_tmux_option "@pomodoro_revamped_transition_claim" "")" == "${claim_id}" ]]
+}
+
 # _pomo_maybe_notify PHASE -> on a phase change, record the finished work period,
 # run the transition and cycle hooks, and fire the alert. The warning flag resets
 # on every change so the next phase can warn once.
@@ -145,7 +153,7 @@ _pomo_maybe_notify() {
   local last
   last=$(get_tmux_option "@pomodoro_revamped_last_phase" "")
   [[ "${last}" == "${1}" ]] && return 0
-  set_tmux_option "@pomodoro_revamped_last_phase" "${1}"
+  _pomo_claim_phase "${last}" "${1}" || return 0
   set_tmux_option "@pomodoro_revamped_warned" ""
   [[ -z "${last}" ]] && return 0
   [[ "${last}" == "work" ]] && _pomo_record_week
