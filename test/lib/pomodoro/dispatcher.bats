@@ -8,6 +8,7 @@ setup() {
   source "${BATS_TEST_DIRNAME}/../../../src/pomodoro.sh"
   _now() { echo 1100; }
   _notify() { echo "$*" >> "${BATS_TEST_TMPDIR}/notified"; }
+  set_tmux_option @pomodoro_revamped_notify 1
 }
 
 teardown() {
@@ -140,7 +141,7 @@ teardown() {
 
 @test "pomodoro.sh - the hook runs even when notifications are off" {
   _run_hook() { echo "HOOK:$*" >> "${BATS_TEST_TMPDIR}/hook"; }
-  set_tmux_option @pomodoro_revamped_notifications 0
+  set_tmux_option @pomodoro_revamped_notify 0
   set_tmux_option @pomodoro_revamped_state running
   set_tmux_option @pomodoro_revamped_last_phase work
   set_tmux_option @pomodoro_revamped_on_break "play-sound"
@@ -429,4 +430,55 @@ teardown() {
   # Assert
   [[ "$(sed -n 2p "${BATS_TEST_TMPDIR}/seam")" == "-E" ]] || false
   [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" == *"'tokens: ##{@pomodoro_status} ##{@pomodoro_week}'"* ]]
+}
+
+@test "pomodoro.sh - notifications are off by default" {
+  # Arrange
+  tmux set-option -gu @pomodoro_revamped_notify
+
+  # Act
+  run _pomo_notify_enabled
+
+  # Assert
+  [ "${status}" -eq 1 ]
+}
+
+@test "pomodoro.sh - the legacy notifications option still turns notifications on" {
+  # Arrange
+  tmux set-option -gu @pomodoro_revamped_notify
+  set_tmux_option @pomodoro_revamped_notifications 1
+
+  # Act
+  run _pomo_notify_enabled
+
+  # Assert
+  [ "${status}" -eq 0 ]
+}
+
+@test "pomodoro.sh - the notify option wins over the legacy option" {
+  # Arrange
+  set_tmux_option @pomodoro_revamped_notify 0
+  set_tmux_option @pomodoro_revamped_notifications 1
+
+  # Act
+  run _pomo_notify_enabled
+
+  # Assert
+  [ "${status}" -eq 1 ]
+}
+
+@test "pomodoro.sh - _notify sends through the shared notifier" {
+  # Arrange
+  source "${BATS_TEST_DIRNAME}/../../../src/pomodoro.sh"
+  _PLATFORM_OS_CACHE="Linux"
+  mkdir -p "${BATS_TEST_TMPDIR}/bin"
+  printf '#!/bin/sh\nprintf "%%s|" "$@" >>"%s"\n' "${BATS_TEST_TMPDIR}/sent" >"${BATS_TEST_TMPDIR}/bin/notify-send"
+  chmod +x "${BATS_TEST_TMPDIR}/bin/notify-send"
+  PATH="${BATS_TEST_TMPDIR}/bin:${PATH}"
+
+  # Act
+  _notify "Pomodoro" "Back to work"
+
+  # Assert
+  [ "$(cat "${BATS_TEST_TMPDIR}/sent")" = "--|Pomodoro|Back to work|" ]
 }

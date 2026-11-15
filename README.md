@@ -104,7 +104,7 @@ Set any option in `~/.tmux.conf` before the plugin loads.
 | `@pomodoro_revamped_work_icon` | empty | Text before the work countdown, such as a Nerd Font tomato |
 | `@pomodoro_revamped_break_icon` | empty | Text before the short break countdown |
 | `@pomodoro_revamped_long_break_icon` | empty | Text before the long break countdown |
-| `@pomodoro_revamped_notifications` | `1` | `0` turns desktop notifications off |
+| `@pomodoro_revamped_notify` | `0` | `1` sends a desktop notification at each phase change and minute warning. The older name `@pomodoro_revamped_notifications` still works when this one is unset |
 | `@pomodoro_revamped_bell` | `0` | `1` rings the bell on every attached client at a phase change |
 | `@pomodoro_revamped_quiet_hours` | empty | A range such as `22:00-07:00` that silences notifications and the bell |
 | `@pomodoro_revamped_warn_seconds` | `0` | Seconds before a phase ends to warn once. `0` turns the warning off |

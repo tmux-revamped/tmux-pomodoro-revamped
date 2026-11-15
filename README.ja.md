@@ -112,7 +112,7 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_work_icon` | 空 | 作業のカウントダウンの前に置くテキストで、Nerd Fontのトマトなどです |
 | `@pomodoro_revamped_break_icon` | 空 | 短い休憩のカウントダウンの前に置くテキストです |
 | `@pomodoro_revamped_long_break_icon` | 空 | 長い休憩のカウントダウンの前に置くテキストです |
-| `@pomodoro_revamped_notifications` | `1` | `0`でデスクトップ通知を止めます |
+| `@pomodoro_revamped_notify` | `0` | `1`でフェーズの切り替えと残り1分の警告ごとにデスクトップ通知を送ります。こちらが未設定のときは旧名の`@pomodoro_revamped_notifications`も使えます |
 | `@pomodoro_revamped_bell` | `0` | `1`でフェーズが変わったとき、接続中のすべてのクライアントでベルを鳴らします |
 | `@pomodoro_revamped_quiet_hours` | 空 | `22:00-07:00`のような時間帯で、その間は通知とベルを止めます |
 | `@pomodoro_revamped_warn_seconds` | `0` | フェーズ終了の何秒前に1回警告するかです。`0`で警告を止めます |

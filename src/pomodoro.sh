@@ -9,14 +9,16 @@ source "${PLUGIN_DIR}/src/lib/tmux/tmux-ops.sh"
 source "${PLUGIN_DIR}/src/lib/pomodoro/pomodoro.sh"
 # shellcheck source=/dev/null
 source "${PLUGIN_DIR}/src/lib/pomodoro/render.sh"
+# shellcheck source=/dev/null
+source "${PLUGIN_DIR}/src/lib/utils/notify.sh"
 
 _now() { date +%s 2>/dev/null || echo 0; }
-_notify() {
-  if command -v osascript >/dev/null 2>&1; then
-    osascript -e "display notification \"${2}\" with title \"${1}\"" >/dev/null 2>&1
-  elif command -v notify-send >/dev/null 2>&1; then
-    notify-send "${1}" "${2}" >/dev/null 2>&1
-  fi
+_notify() { notify_send "${1}" "${2}"; }
+_pomo_notify_enabled() {
+  local value
+  value=$(get_tmux_option "@pomodoro_revamped_notify" "")
+  [[ -n "${value}" ]] || value=$(get_tmux_option "@pomodoro_revamped_notifications" "0")
+  [[ "${value}" == "1" ]]
 }
 _fmt_hm() { date -r "${1}" +%H:%M 2>/dev/null || date -d "@${1}" +%H:%M 2>/dev/null || echo "??:??"; }
 _bell() {
@@ -86,7 +88,7 @@ _pomo_in_quiet() {
 _pomo_alert() {
   _pomo_in_quiet && return 0
   [[ "$(get_tmux_option "@pomodoro_revamped_bell" "0")" == "1" ]] && _bell
-  [[ "$(get_tmux_option "@pomodoro_revamped_notifications" "1")" == "1" ]] || return 0
+  _pomo_notify_enabled || return 0
   case "${1}" in
     work)       _notify "Pomodoro" "Back to work" ;;
     break)      _notify "Pomodoro" "Take a short break" ;;
@@ -143,7 +145,7 @@ _pomo_warn() {
   set_tmux_option "@pomodoro_revamped_warned" "1"
   _pomo_run_hook "warn"
   _pomo_in_quiet && return 0
-  [[ "$(get_tmux_option "@pomodoro_revamped_notifications" "1")" == "1" ]] || return 0
+  _pomo_notify_enabled || return 0
   _notify "Pomodoro" "Less than a minute left"
 }
 

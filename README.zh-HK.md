@@ -112,7 +112,7 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_work_icon` | 空 | 工作倒數之前的文字，例如 Nerd Font 的番茄圖示 |
 | `@pomodoro_revamped_break_icon` | 空 | 短休息倒數之前的文字 |
 | `@pomodoro_revamped_long_break_icon` | 空 | 長休息倒數之前的文字 |
-| `@pomodoro_revamped_notifications` | `1` | `0` 關閉桌面通知 |
+| `@pomodoro_revamped_notify` | `0` | `1` 在每次階段切換及剩餘一分鐘提示時發出桌面通知。未設定此項時，舊名稱 `@pomodoro_revamped_notifications` 仍然有效 |
 | `@pomodoro_revamped_bell` | `0` | `1` 在階段轉換時令每個已連接的用戶端響鈴 |
 | `@pomodoro_revamped_quiet_hours` | 空 | 例如 `22:00-07:00` 的時段，期間靜音通知及鈴聲 |
 | `@pomodoro_revamped_warn_seconds` | `0` | 階段結束前多少秒提示一次。`0` 關閉提示 |

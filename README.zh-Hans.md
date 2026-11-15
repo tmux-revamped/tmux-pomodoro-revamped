@@ -112,7 +112,7 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_work_icon` | 空 | 工作倒计时之前的文本，例如 Nerd Font 的番茄图标 |
 | `@pomodoro_revamped_break_icon` | 空 | 短休息倒计时之前的文本 |
 | `@pomodoro_revamped_long_break_icon` | 空 | 长休息倒计时之前的文本 |
-| `@pomodoro_revamped_notifications` | `1` | `0` 关闭桌面通知 |
+| `@pomodoro_revamped_notify` | `0` | `1` 在每次阶段切换和剩余一分钟提醒时发送桌面通知。未设置此项时，旧名称 `@pomodoro_revamped_notifications` 仍然有效 |
 | `@pomodoro_revamped_bell` | `0` | `1` 在阶段切换时让每个已连接的客户端响铃 |
 | `@pomodoro_revamped_quiet_hours` | 空 | 例如 `22:00-07:00` 的时间段，在此期间静默通知和铃声 |
 | `@pomodoro_revamped_warn_seconds` | `0` | 阶段结束前多少秒提醒一次。`0` 关闭提醒 |
