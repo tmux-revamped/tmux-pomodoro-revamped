@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- The help popup listed the status tokens as `##{@pomodoro_status}` and
+  `##{@pomodoro_week}`, since tmux 3.6 and 3.8 expand no format in a popup's
+  command. The popup now prints each hash from an octal escape, so the tokens
+  read `#{@pomodoro_status}` on every tmux version.
+
 ## [3.0.0] - 2026-11-15
 
 ### Changed

@@ -269,7 +269,7 @@ pomodoro_menu() {
 }
 
 pomodoro_help() {
-  _tmux display-popup -E "printf '%s\\n' 'tmux-pomodoro-revamped' 'toggle, cancel, skip, restart, menu, help' 'tokens: ##{@pomodoro_status} ##{@pomodoro_week}'; read -r"
+  _tmux display-popup -E "printf '%s\\n' 'tmux-pomodoro-revamped' 'toggle, cancel, skip, restart, menu, help'; printf '%b\\n' 'tokens: \\0043{@pomodoro_status} \\0043{@pomodoro_week}'; read -r"
 }
 
 main() {

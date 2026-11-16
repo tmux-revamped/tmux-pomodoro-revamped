@@ -420,7 +420,7 @@ teardown() {
   [[ "$(sed -n 4p "${BATS_TEST_TMPDIR}/claim")" == "set-option -gq @pomodoro_revamped_last_phase break ; set-option -gq @pomodoro_revamped_transition_claim "* ]]
 }
 
-@test "pomodoro.sh - the help popup escapes token names so tmux shows them literally" {
+@test "pomodoro.sh - the help popup command carries no hash, so no tmux version can expand a token" {
   # Arrange
   _tmux() { printf '%s\n' "$@" > "${BATS_TEST_TMPDIR}/seam"; }
 
@@ -429,7 +429,8 @@ teardown() {
 
   # Assert
   [[ "$(sed -n 2p "${BATS_TEST_TMPDIR}/seam")" == "-E" ]] || false
-  [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" == *"'tokens: ##{@pomodoro_status} ##{@pomodoro_week}'"* ]]
+  [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" == *"'tokens: \\0043{@pomodoro_status} \\0043{@pomodoro_week}'"* ]] || false
+  [[ "$(sed -n 3p "${BATS_TEST_TMPDIR}/seam")" != *"#"* ]]
 }
 
 @test "pomodoro.sh - notifications are off by default" {
@@ -481,4 +482,16 @@ teardown() {
 
   # Assert
   [ "$(cat "${BATS_TEST_TMPDIR}/sent")" = "--|Pomodoro|Back to work|" ]
+}
+
+@test "pomodoro.sh - the help popup shows each status token with one hash" {
+  # Arrange
+  _tmux() { printf '%s' "$3" > "${BATS_TEST_TMPDIR}/popup"; }
+
+  # Act
+  main help
+
+  # Assert
+  run sh -c "$(cat "${BATS_TEST_TMPDIR}/popup")" </dev/null
+  [[ "${output}" == *"tokens: #{@pomodoro_status} #{@pomodoro_week}" ]]
 }
