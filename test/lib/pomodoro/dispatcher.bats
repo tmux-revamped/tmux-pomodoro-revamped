@@ -484,14 +484,16 @@ teardown() {
   [ "$(cat "${BATS_TEST_TMPDIR}/sent")" = "--|Pomodoro|Back to work|" ]
 }
 
-@test "pomodoro.sh - the help popup shows each status token with one hash" {
+@test "pomodoro.sh - the help popup shows each status token with one hash, even under dash" {
   # Arrange
+  local shell
+  shell=$(command -v dash || command -v sh)
   _tmux() { printf '%s' "$3" > "${BATS_TEST_TMPDIR}/popup"; }
 
   # Act
   main help
 
   # Assert
-  run sh -c "$(cat "${BATS_TEST_TMPDIR}/popup")" </dev/null
-  [[ "${output}" == *"tokens: #{@pomodoro_status} #{@pomodoro_week}" ]]
+  run "${shell}" -c "$(cat "${BATS_TEST_TMPDIR}/popup")" </dev/null
+  [[ "${output}" == $'tmux-pomodoro-revamped\ntoggle, cancel, skip, restart, menu, help\ntokens: #{@pomodoro_status} #{@pomodoro_week}' ]]
 }

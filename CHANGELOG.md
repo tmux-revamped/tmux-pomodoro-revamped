@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `##{@pomodoro_week}`, since tmux 3.6 and 3.8 expand no format in a popup's
   command. The popup now prints each hash from an octal escape, so the tokens
   read `#{@pomodoro_status}` on every tmux version.
+- The help popup ended with a bare `read -r`, which dash rejects with
+  "read: arg count", so where tmux runs the popup through dash it closed
+  at once. It now reads into a named variable, as POSIX requires.
 
 ## [3.0.0] - 2026-11-15
 
