@@ -1,0 +1,3 @@
+$ pomodoro-revamped
+pomodoro-revamped: no command given. run 'pomodoro-revamped help' for usage.
+exit 1

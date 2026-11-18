@@ -1,75 +1,103 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2016,SC2030,SC2031,SC2034,SC2154
 
-setup() {
-  PLUGIN_ROOT="$(cd "${BATS_TEST_DIRNAME}/.." && pwd)"
-  COPY_DIR="${BATS_TEST_TMPDIR}/my plugins/it's here"
-  mkdir -p "${COPY_DIR}"
-  cp -Rf "${PLUGIN_ROOT}/src" "${PLUGIN_ROOT}/pomodoro-revamped.tmux" "${COPY_DIR}/"
-  TMUX_LOG="${BATS_TEST_TMPDIR}/tmux.log"
-  export TMUX_LOG
-  tmux() {
-    if [[ "${1}" == "show-option" ]]; then
-      [[ "${3}" == "status-right" ]] && printf '%s' '#{pomodoro_status} | %H:%M'
-      return 0
-    fi
-    printf '%s\037' "$@" >> "${TMUX_LOG}"
-    printf '\n' >> "${TMUX_LOG}"
-  }
-  export -f tmux
+# shellcheck source=test/server_helpers.bash
+source "${BATS_TEST_DIRNAME:-.}/server_helpers.bash"
+
+bats_require_minimum_version 1.5.0
+
+everything() {
+  tmux show-options -g
+  tmux list-keys
 }
 
-_logged_field() {
-  local line
-  line="$(grep -F "${1}" "${TMUX_LOG}" | head -n 1)"
-  printf '%s' "${line}" | awk -v n="${2}" 'BEGIN { FS = "\037" } { print $n }'
-}
-
-@test "entrypoint - the bound run-shell command keeps a spaced plugin path as one word" {
+@test "entrypoint - git tracks the entry point and the tool as executable" {
   # Arrange
-  local -a words
+  local modes
 
   # Act
-  bash "${COPY_DIR}/pomodoro-revamped.tmux"
+  modes=$(git -C "${ROOT}" ls-files --stage -- pomodoro-revamped.tmux bin/pomodoro-revamped)
 
   # Assert
-  eval "words=($(_logged_field "$(printf 'bind-key\037M-s\037')" 4))"
-  [ "${words[0]}" == "${COPY_DIR}/src/pomodoro.sh" ]
-  [ "${words[1]}" == "toggle" ]
+  run awk '$1 != "100755" { bad++ } END { print NR ":" bad + 0 }' <<<"${modes}"
+  [[ "${output}" == "2:0" ]]
 }
 
-@test "entrypoint - the status placeholder becomes a job with a quoted plugin path" {
+@test "entrypoint - loading binds the toggle on M-s and turns the placeholder into the timer's job" {
   # Arrange
-  local value command
-  local -a words
+  local keys
+  tmux set-option -g status-right '#{pomodoro_status} end'
 
   # Act
-  bash "${COPY_DIR}/pomodoro-revamped.tmux"
+  load_plugin
 
   # Assert
-  value="$(_logged_field "$(printf 'set-option\037-gq\037status-right\037')" 4)"
-  [[ "${value}" == "#("*") | %H:%M" ]] || false
-  command="${value#'#('}"
-  command="${command%') | %H:%M'}"
-  eval "words=(${command})"
-  [ "${words[0]}" == "${COPY_DIR}/src/pomodoro.sh" ]
-  [ "${words[1]}" == "status" ]
+  keys=$(prefix_keys)
+  run grep -c -x 'M-s' <<<"${keys}"
+  [[ "${output}" == "1" ]]
+  run tmux show-option -gqv status-right
+  [[ "${output}" == "#('${ROOT}/bin/pomodoro-revamped' status) end" ]]
 }
 
-@test "entrypoint - only the toggle is bound by default, on M-s" {
+@test "entrypoint - loading twice changes nothing" {
+  # Arrange
+  local before after
+  tmux set-option -g status-right '#{pomodoro_status} end'
+  load_plugin
+  before=$(everything)
+
   # Act
-  bash "${COPY_DIR}/pomodoro-revamped.tmux"
+  load_plugin
 
   # Assert
-  [ "$(grep -c "^bind-key"$'\037' "${TMUX_LOG}")" -eq 1 ] || false
-  [ "$(_logged_field "$(printf 'bind-key\037')" 2)" == "M-s" ]
+  after=$(everything)
+  [[ "${before}" == "${after}" ]]
 }
 
-@test "entrypoint - cancel, skip, restart, menu and help stay unbound by default" {
+@test "entrypoint - a checkout whose path holds a space, a quote and a hash loads, counts down and takes its key" {
+  # Arrange
+  local copy="${BATS_TEST_TMPDIR}/it's #1 plug in"
+  mkdir -p "${copy}"
+  cp -R "${ROOT}/bin" "${ROOT}/lib" "${ROOT}/pomodoro-revamped.tmux" "${copy}/"
+  tmux set-option -g status-right '#{pomodoro_status} end'
+  load_plugin "${copy}"
+
   # Act
-  bash "${COPY_DIR}/pomodoro-revamped.tmux"
+  press C-b M-s
 
   # Assert
-  [[ "$(cat "${TMUX_LOG}")" != *"cancel"* ]] || false
-  [[ "$(cat "${TMUX_LOG}")" != *" menu"* ]] || false
-  [[ "$(cat "${TMUX_LOG}")" != *" help"* ]]
+  wait_for holds state running
+  wait_for host_shows "[1/4]"
+}
+
+@test "entrypoint - a default key someone else holds is left alone, and one the person names is bound" {
+  # Arrange
+  local table
+  tmux bind-key -T prefix M-s display-message taken
+  tmux bind-key -T prefix x display-message taken-too
+  setting cancel_key x
+
+  # Act
+  load_plugin
+
+  # Assert
+  table=$(tmux list-keys -T prefix)
+  run grep -c 'M-s  *display-message taken' <<<"${table}"
+  [[ "${output}" == "1" ]]
+  run grep -c 'pomodoro-revamped. cancel' <<<"${table}"
+  [[ "${output}" == "1" ]]
+}
+
+@test "entrypoint - a key set to off binds nothing" {
+  # Arrange
+  local table
+  setting toggle_key off
+
+  # Act
+  load_plugin
+
+  # Assert
+  table=$(tmux list-keys -T prefix)
+  run grep -c 'pomodoro-revamped' <<<"${table}"
+  [[ "${output}" == "0" ]]
 }

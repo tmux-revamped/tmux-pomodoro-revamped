@@ -4,44 +4,48 @@
 
 <strong>A Pomodoro timer in the tmux status bar that keeps all of its state in tmux options, with no temp files.</strong>
 
-English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁體中文（香港）](README.zh-HK.md)
+English &nbsp;|&nbsp; [日本語](README.ja.md) &nbsp;|&nbsp; [简体中文](README.zh-Hans.md) &nbsp;|&nbsp; [繁體中文（香港）](README.zh-HK.md)
 
-[![family](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-pomodoro-revamped/family.yml?branch=main&style=flat-square&label=family)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/family.yml)
-[![tests](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-pomodoro-revamped/tests.yml?branch=main&style=flat-square&label=tests)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml)
+[![ci](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-pomodoro-revamped/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/tmux-revamped/tmux-pomodoro-revamped?style=flat-square&label=release)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/releases/latest)
 [![openssf scorecard](https://img.shields.io/ossf-scorecard/github.com/tmux-revamped/tmux-pomodoro-revamped?style=flat-square&label=openssf%20scorecard)](https://scorecard.dev/viewer/?uri=github.com/tmux-revamped/tmux-pomodoro-revamped)
 [![license](https://img.shields.io/github/license/tmux-revamped/tmux-pomodoro-revamped?style=flat-square&label=license)](LICENSE)
 
 <p align="center">
-  <a href="#what-it-does">What it does</a> |
-  <a href="#installation">Installation</a> |
-  <a href="#usage">Usage</a> |
-  <a href="#configuration">Configuration</a> |
-  <a href="#key-bindings">Key bindings</a> |
-  <a href="#how-it-works">How it works</a>
+  <a href="#quick-start"><strong>Quick start</strong></a> &nbsp;|&nbsp;
+  <a href="#usage">Usage</a> &nbsp;|&nbsp;
+  <a href="#how-it-works">How it works</a> &nbsp;|&nbsp;
+  <a href="#screens">Screens</a>
 </p>
 
 </div>
 
-**25 minutes of work, 5-minute breaks, and a 15-minute long break after every 4 work periods. 0 temp files. Tested on macOS and Linux.**
+<p align="center">
+  <img src="screens/hero.gif" alt="pomodoro-revamped starting a timer in the status line, pausing it, skipping to the break from its menu and showing a progress bar" width="800">
+</p>
 
----
-
-## What it does
+```console
+$ pomodoro-revamped toggle
+$ pomodoro-revamped --show-progress 1 status
+#[fg=red]-------- 25:00 [1/4]#[default]
+```
 
 The timer counts down work periods and breaks in the status bar, then repeats the cycle. It pauses and resumes without losing a second, and on each phase change it can send a desktop notification, ring the terminal bell, and run a shell command of your choice. It also keeps a 7-day tally of finished work periods.
 
-## Requirements
+---
 
-| Requirement | Version or note |
-|:------------|:----------------|
-| tmux | 3.2 or later, for the help popup |
-| bash | 3.2 or later, so the stock macOS `/bin/bash` works |
-| Operating system | macOS on Apple Silicon and Intel, Linux on x86_64 and arm64 |
-| Core tools | BSD, GNU or uutils coreutils |
-| `osascript` or `notify-send` | Optional, for desktop notifications on macOS or Linux |
+## Quick start
 
-## Installation
+### Prerequisites
+
+| Tool | Version | Used for |
+|:-----|:--------|:---------|
+| tmux | 3.2 or later | the family floor, and the help popup |
+| `osascript` or `notify-send` | optional | desktop notifications on macOS or Linux |
+| `less` | optional | the help key pages the help page with it; without it the popup shows the whole page and Enter closes it |
+| gum | optional | the menu, tables and colours of `pomodoro-revamped`; without it every command prints plain text |
+
+### Install
 
 With [TPM](https://github.com/tmux-plugins/tpm), add the plugin and the placeholder to `~/.tmux.conf`, then press `prefix + I`:
 
@@ -60,6 +64,14 @@ git clone https://github.com/tmux-revamped/tmux-pomodoro-revamped ~/.tmux/plugin
 run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 ```
 
+`make install` in the clone also puts `pomodoro-revamped` in `~/.local/bin`, with its man page and completions under `~/.local/share`.
+
+### Verify
+
+```bash
+~/.tmux/plugins/tmux-pomodoro-revamped/bin/pomodoro-revamped doctor
+```
+
 ## Usage
 
 Press `prefix + M-s` to start the timer. Press it again to pause, and again to resume.
@@ -70,14 +82,26 @@ Every render also writes these tmux options, which a theme or another plugin can
 
 | Option | Value |
 |:-------|:------|
-| `@pomodoro_status` | The rendered segment, the same text as `#{pomodoro_status}` |
-| `@pomodoro_phase` | `work`, `break` or `long_break` |
-| `@pomodoro_remaining` | Seconds left in the phase |
-| `@pomodoro_fraction` | Percent of the phase elapsed |
-| `@pomodoro_week` | A sparkline of work periods per weekday over the last 7 days, Sunday first, drawn with `_.-=+*%@` |
-| `@pomodoro_today` | Work periods finished today |
+| `@pomodoro_revamped_status` | The rendered segment, the same text as `#{pomodoro_status}` |
+| `@pomodoro_revamped_phase` | `work`, `break` or `long_break` |
+| `@pomodoro_revamped_remaining` | Seconds left in the phase |
+| `@pomodoro_revamped_fraction` | Percent of the phase elapsed |
+| `@pomodoro_revamped_week` | A sparkline of work periods per weekday over the last 7 days, Sunday first, drawn with `_.-=+*%@` |
+| `@pomodoro_revamped_today` | Work periods finished today |
 
-The same actions run from a shell as `~/.tmux/plugins/tmux-pomodoro-revamped/src/pomodoro.sh <action>`, where the action is `toggle`, `cancel`, `skip`, `restart`, `menu` or `help`.
+| Command | What it does |
+|:--------|:-------------|
+| `pomodoro-revamped apply` | Binds the keys and replaces the placeholder now; the entry point runs it when tmux loads the plugin |
+| `pomodoro-revamped list` | Prints every command `apply` would send and changes nothing; `--json` prints one object |
+| `pomodoro-revamped toggle` | Starts the timer, pauses it or resumes it |
+| `pomodoro-revamped skip` | Jumps to the next phase |
+| `pomodoro-revamped restart` | Starts the current phase again |
+| `pomodoro-revamped cancel` | Stops the timer and clears it |
+| `pomodoro-revamped status` | Prints the status segment; the status line runs it |
+| `pomodoro-revamped doctor` | One row per dependency: the notifier, `less` and any key left alone |
+| `pomodoro-revamped version` | The version, then the tmux version |
+| `pomodoro-revamped help` | The help page; `man pomodoro-revamped` documents the same commands and settings |
+| `pomodoro-revamped` | On a terminal, a menu |
 
 ## Configuration
 
@@ -104,7 +128,7 @@ Set any option in `~/.tmux.conf` before the plugin loads.
 | `@pomodoro_revamped_work_icon` | empty | Text before the work countdown, such as a Nerd Font tomato |
 | `@pomodoro_revamped_break_icon` | empty | Text before the short break countdown |
 | `@pomodoro_revamped_long_break_icon` | empty | Text before the long break countdown |
-| `@pomodoro_revamped_notify` | `0` | `1` sends a desktop notification at each phase change and minute warning. The older name `@pomodoro_revamped_notifications` still works when this one is unset |
+| `@pomodoro_revamped_notify` | `0` | `1` sends a desktop notification at each phase change and minute warning. |
 | `@pomodoro_revamped_bell` | `0` | `1` rings the bell on every attached client at a phase change |
 | `@pomodoro_revamped_quiet_hours` | empty | A range such as `22:00-07:00` that silences notifications and the bell |
 | `@pomodoro_revamped_warn_seconds` | `0` | Seconds before a phase ends to warn once. `0` turns the warning off |
@@ -119,6 +143,8 @@ Set any option in `~/.tmux.conf` before the plugin loads.
 | `@pomodoro_revamped_restart_key` | empty | Prefix key that restarts the current phase |
 | `@pomodoro_revamped_menu_key` | empty | Prefix key that opens the control menu |
 | `@pomodoro_revamped_help_key` | empty | Prefix key that opens the help popup |
+
+Every option is also a command option with dashes, such as `--work 50`, and an environment variable, such as `POMODORO_REVAMPED_WORK`; the command line wins over the environment, and the environment over the tmux option. An empty tmux option means its default. One given to `apply` rides on every binding and on the status call.
 
 ### Internal state
 
@@ -147,11 +173,13 @@ The plugin manages these options itself. Do not set them.
 | unbound | Open the control menu | `@pomodoro_revamped_menu_key` |
 | unbound | Open the help popup | `@pomodoro_revamped_help_key` |
 
-`M-s` is the one key the tmux-revamped family allocates to this plugin. Before 2.0.0 the toggle was `p` and the other actions were bound to `P`, `_`, `R`, `o` and `?`. To get one back, set its option:
+`M-s` is the one key the tmux-revamped family allocates to this plugin. The other keys are unbound until you set their options, and a default key someone else holds is left alone, which `doctor` reports:
 
 ```tmux
 set -g @pomodoro_revamped_menu_key 'o'
 ```
+
+<a id="how-it-works"></a>
 
 ## How it works
 
@@ -159,23 +187,97 @@ set -g @pomodoro_revamped_menu_key 'o'
 
 **No files.** Every value lives in tmux server options, so nothing is written under `/tmp` and nothing is left to clean up. The weekly tally is a 7-slot ring in an option.
 
-**Rendering.** The entry point replaces `#{pomodoro_status}` with a `#()` call to [`src/pomodoro.sh`](src/pomodoro.sh), so the countdown advances once per `status-interval`. No background process runs.
+**Rendering.** The entry point replaces `#{pomodoro_status}` with a `#()` call to [`bin/pomodoro-revamped`](bin/pomodoro-revamped), so the countdown advances once per `status-interval`. No background process runs.
 
 **Phase changes.** Each attached client refreshes the status line, so several renders can notice the same phase change. A single conditional tmux command claims the change, and only the claiming render counts the work period, runs the hooks and sends the alerts. Hooks run through `run-shell -b`, so a slow command never holds the status line.
 
+<a id="screens"></a>
+
+## Screens
+
+<details>
+<summary>Every screen, recorded inside a real tmux with <code>make screens</code>, with each key on the status line</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/running.png" alt="pomodoro-revamped: prefix M-s starts the timer"><br><sub><code>prefix M-s</code> starts the timer, from <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/paused.png" alt="pomodoro-revamped: prefix M-s pauses it"><br><sub><code>prefix M-s</code> pauses it, from <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/timer-menu.png" alt="pomodoro-revamped: prefix M-p, the menu key, opens the timer menu"><br><sub><code>prefix M-p</code>, the menu key, opens the timer menu, from <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/break.png" alt="pomodoro-revamped: Skip phase, from the menu, starts the break"><br><sub>Skip phase, from the menu, starts the break, from <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/progress.png" alt="pomodoro-revamped: The progress bar, today's count over the goal and the finish time"><br><sub>The progress bar, today's count over the goal and the finish time, from <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/restarted.png" alt="pomodoro-revamped: prefix M-r, the restart key, starts the phase again"><br><sub><code>prefix M-r</code>, the restart key, starts the phase again, from <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help-popup.png" alt="pomodoro-revamped: prefix M-o, the help key, opens the help page"><br><sub><code>prefix M-o</code>, the help key, opens the help page, from <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/skipped.png" alt="pomodoro-revamped: prefix M-k, the skip key, jumps to the next phase"><br><sub><code>prefix M-k</code>, the skip key, jumps to the next phase, from <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/cancelled.png" alt="pomodoro-revamped: prefix M-c, the cancel key, clears the timer"><br><sub><code>prefix M-c</code>, the cancel key, clears the timer, from <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/list.png" alt="pomodoro-revamped: list prints every binding"><br><sub><code>list</code> prints every binding, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/status.png" alt="pomodoro-revamped: status prints the segment"><br><sub><code>status</code> prints the segment, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="pomodoro-revamped: doctor"><br><sub><code>doctor</code>, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/plain-menu.png" alt="pomodoro-revamped: The menu without gum"><br><sub>The menu without gum, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/plain-doctor.png" alt="pomodoro-revamped: doctor from the menu"><br><sub><code>doctor</code> from the menu, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/version.png" alt="pomodoro-revamped: The version"><br><sub>The version, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="pomodoro-revamped: An unknown command"><br><sub>An unknown command, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="pomodoro-revamped: The header in six themes"><br><sub>The header in six themes, from <code>themes.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="pomodoro-revamped: The help page"><br><sub>The help page, from <code>help.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/accent.png" alt="pomodoro-revamped: An accent from POMODORO_REVAMPED_ACCENT"><br><sub>An accent from <code>POMODORO_REVAMPED_ACCENT</code>, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"></td>
+</tr>
+</table>
+
+</details>
+
+## Portability
+
+The plugin is POSIX `sh`. CI runs every suite on each row below.
+
+| Shell | Status |
+|:------|:-------|
+| `dash`, `/bin/sh` on macOS | Supported |
+| `bash` 3.2 and 5.x, the system's `zsh` and Homebrew's | Supported |
+
+| System | Status |
+|:-------|:-------|
+| macOS | Tahoe on Apple Silicon and Intel, with the tools it ships, Homebrew's GNU tools and Homebrew's uutils |
+| Linux | Ubuntu 26.04 on x86_64 and arm64, with GNU coreutils, uutils and BusyBox |
+
 ## Development
 
-| Command | What it does |
+| Command | What it runs |
 |:--------|:-------------|
-| `make test` | Runs the bats suite |
-| `make lint` | Runs shellcheck on every shell file |
-| `make coverage` | Measures line coverage with kcov and fails below 95 percent, on Linux |
+| `make fmt` | shfmt `-i 2` on every script |
+| `make lint` | shfmt, ShellCheck, mandoc, yamllint and actionlint, at zero findings |
+| `make test` | The bats suites under the system `sh` |
+| `make test-all` | The suites under every installed shell, both builds of bash and zsh on macOS |
+| `make test-linux` | The suites in an Ubuntu container |
+| `make coverage` | bashcov on this Mac and in the Ubuntu container, merged and gated at 100 percent |
+| `make screens` | The screens above, recorded from the real plugin inside tmux with VHS, on macOS |
+| `make install` | The command, its man page and completions under `PREFIX` |
 
-The suite needs `bats-core` and tmux.
+On macOS, `brew bundle` installs every tool these targets call, from the [`Brewfile`](Brewfile).
+
+Commits follow the conventional commit format and go straight to `main`. After a green `ci` run on `main`, `release.yml` runs semantic-release: every `feat` or `fix` since the last tag publishes a release, stamps the version constant and adds the notes to [`CHANGELOG.md`](CHANGELOG.md).
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE), copyright Gustavo Franco.
 
 <!-- family:begin -->
 

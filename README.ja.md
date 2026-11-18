@@ -4,48 +4,48 @@
 
 <strong>すべての状態をtmuxオプションに保持し、一時ファイルを使わない、tmuxステータスバーのポモドーロタイマーです。</strong>
 
-[English](README.md) | 日本語 | [简体中文](README.zh-Hans.md) | [繁體中文（香港）](README.zh-HK.md)
+[English](README.md) &nbsp;|&nbsp; 日本語 &nbsp;|&nbsp; [简体中文](README.zh-Hans.md) &nbsp;|&nbsp; [繁體中文（香港）](README.zh-HK.md)
 
-[![family](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-pomodoro-revamped/family.yml?branch=main&style=flat-square&label=family)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/family.yml)
-[![tests](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-pomodoro-revamped/tests.yml?branch=main&style=flat-square&label=tests)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml)
+[![ci](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-pomodoro-revamped/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/tmux-revamped/tmux-pomodoro-revamped?style=flat-square&label=release)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/releases/latest)
 [![openssf scorecard](https://img.shields.io/ossf-scorecard/github.com/tmux-revamped/tmux-pomodoro-revamped?style=flat-square&label=openssf%20scorecard)](https://scorecard.dev/viewer/?uri=github.com/tmux-revamped/tmux-pomodoro-revamped)
 [![license](https://img.shields.io/github/license/tmux-revamped/tmux-pomodoro-revamped?style=flat-square&label=license)](LICENSE)
 
 <p align="center">
-  <a href="#what-it-does">概要</a> |
-  <a href="#installation">インストール</a> |
-  <a href="#usage">使い方</a> |
-  <a href="#configuration">設定</a> |
-  <a href="#key-bindings">キーバインド</a> |
-  <a href="#how-it-works">仕組み</a>
+  <a href="#クイックスタート"><strong>クイックスタート</strong></a> &nbsp;|&nbsp;
+  <a href="#使い方">使い方</a> &nbsp;|&nbsp;
+  <a href="#仕組み">仕組み</a> &nbsp;|&nbsp;
+  <a href="#画面">画面</a>
 </p>
 
 </div>
 
-**作業25分、短い休憩5分、作業4回ごとに長い休憩15分です。一時ファイルは0個です。macOSとLinuxでテストしています。**
+<p align="center">
+  <img src="screens/hero.gif" alt="ステータスラインでタイマーを始め、一時停止し、メニューから休憩に進み、進捗バーを表示する pomodoro-revamped" width="800">
+</p>
 
----
-
-<a id="what-it-does"></a>
-
-## 概要
+```console
+$ pomodoro-revamped toggle
+$ pomodoro-revamped --show-progress 1 status
+#[fg=red]-------- 25:00 [1/4]#[default]
+```
 
 タイマーは作業時間と休憩をステータスバーでカウントダウンし、そのサイクルを繰り返します。一時停止と再開をしても時間がずれません。フェーズが変わるたびに、デスクトップ通知を送り、端末のベルを鳴らし、好きなシェルコマンドを実行できます。終えた作業の回数を7日分記録します。
 
-## 必要なもの
+---
 
-| 項目 | バージョンや補足 |
-|:------------|:----------------|
-| tmux | 3.2以降。ヘルプのポップアップに必要です |
-| bash | 3.2以降。macOS標準の`/bin/bash`で動きます |
-| OS | Apple SiliconとIntelのmacOS、x86_64とarm64のLinux |
-| 基本コマンド | BSD、GNU、uutilsのいずれのcoreutilsでも動きます |
-| `osascript`または`notify-send` | 任意。macOSまたはLinuxのデスクトップ通知に使います |
+## クイックスタート
 
-<a id="installation"></a>
+### 前提条件
 
-## インストール
+| ツール | バージョン | 用途 |
+|:-----|:--------|:---------|
+| tmux | 3.2 以降 | ファミリー共通の最低バージョン。ヘルプのポップアップにも必要です |
+| `osascript` または `notify-send` | 任意 | macOS や Linux のデスクトップ通知 |
+| `less` | 任意 | ヘルプのキーがヘルプをこの中に表示します。ない場合はポップアップにヘルプ全体を表示し、Enter で閉じます |
+| gum | 任意 | `pomodoro-revamped` のメニュー、表、色。なくてもすべてのコマンドがプレーンテキストで動きます |
+
+### インストール
 
 [TPM](https://github.com/tmux-plugins/tpm)を使う場合は、`~/.tmux.conf`にプラグインとプレースホルダーを追加して`prefix + I`を押します。
 
@@ -64,7 +64,13 @@ git clone https://github.com/tmux-revamped/tmux-pomodoro-revamped ~/.tmux/plugin
 run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 ```
 
-<a id="usage"></a>
+クローンで `make install` を実行すると、`pomodoro-revamped` が `~/.local/bin` に、manページと補完が `~/.local/share` の下に入ります。
+
+### 確認
+
+```bash
+~/.tmux/plugins/tmux-pomodoro-revamped/bin/pomodoro-revamped doctor
+```
 
 ## 使い方
 
@@ -76,16 +82,26 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 
 | オプション | 値 |
 |:-------|:------|
-| `@pomodoro_status` | 描画したセグメントで、`#{pomodoro_status}`と同じテキストです |
-| `@pomodoro_phase` | `work`、`break`、`long_break`のいずれかです |
-| `@pomodoro_remaining` | フェーズの残り秒数です |
-| `@pomodoro_fraction` | フェーズの経過率をパーセントで示します |
-| `@pomodoro_week` | 直近7日間の曜日ごとの作業回数を日曜日から並べたスパークラインで、`_.-=+*%@`で描きます |
-| `@pomodoro_today` | 今日終えた作業の回数です |
+| `@pomodoro_revamped_status` | 描画したセグメントで、`#{pomodoro_status}`と同じテキストです |
+| `@pomodoro_revamped_phase` | `work`、`break`、`long_break`のいずれかです |
+| `@pomodoro_revamped_remaining` | フェーズの残り秒数です |
+| `@pomodoro_revamped_fraction` | フェーズの経過率をパーセントで示します |
+| `@pomodoro_revamped_week` | 直近7日間の曜日ごとの作業回数を日曜日から並べたスパークラインで、`_.-=+*%@`で描きます |
+| `@pomodoro_revamped_today` | 今日終えた作業の回数です |
 
-同じ操作はシェルから`~/.tmux/plugins/tmux-pomodoro-revamped/src/pomodoro.sh <action>`として実行できます。actionは`toggle`、`cancel`、`skip`、`restart`、`menu`、`help`のいずれかです。
-
-<a id="configuration"></a>
+| コマンド | 動作 |
+|:--------|:-------------|
+| `pomodoro-revamped apply` | キーを割り当て、プレースホルダーを今すぐ置き換えます。プラグインの読み込み時にエントリーポイントが実行します |
+| `pomodoro-revamped list` | `apply` が送るコマンドをすべて表示し、何も変更しません。`--json` で 1 つのオブジェクトを出力します |
+| `pomodoro-revamped toggle` | タイマーを開始、一時停止、再開します |
+| `pomodoro-revamped skip` | 次のフェーズに進みます |
+| `pomodoro-revamped restart` | 現在のフェーズを最初からやり直します |
+| `pomodoro-revamped cancel` | タイマーを止めて消去します |
+| `pomodoro-revamped status` | ステータスの表示を出力します。ステータスラインが実行します |
+| `pomodoro-revamped doctor` | 依存関係ごとに 1 行。通知の手段、`less`、触れなかったキーも含みます |
+| `pomodoro-revamped version` | バージョンと tmux のバージョン |
+| `pomodoro-revamped help` | ヘルプ。`man pomodoro-revamped` にも同じコマンドと設定があります |
+| `pomodoro-revamped` | 端末ではメニュー |
 
 ## 設定
 
@@ -112,7 +128,7 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_work_icon` | 空 | 作業のカウントダウンの前に置くテキストで、Nerd Fontのトマトなどです |
 | `@pomodoro_revamped_break_icon` | 空 | 短い休憩のカウントダウンの前に置くテキストです |
 | `@pomodoro_revamped_long_break_icon` | 空 | 長い休憩のカウントダウンの前に置くテキストです |
-| `@pomodoro_revamped_notify` | `0` | `1`でフェーズの切り替えと残り1分の警告ごとにデスクトップ通知を送ります。こちらが未設定のときは旧名の`@pomodoro_revamped_notifications`も使えます |
+| `@pomodoro_revamped_notify` | `0` | `1`でフェーズの切り替えと残り1分の警告ごとにデスクトップ通知を送ります。 |
 | `@pomodoro_revamped_bell` | `0` | `1`でフェーズが変わったとき、接続中のすべてのクライアントでベルを鳴らします |
 | `@pomodoro_revamped_quiet_hours` | 空 | `22:00-07:00`のような時間帯で、その間は通知とベルを止めます |
 | `@pomodoro_revamped_warn_seconds` | `0` | フェーズ終了の何秒前に1回警告するかです。`0`で警告を止めます |
@@ -127,6 +143,8 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_restart_key` | 空 | 現在のフェーズをやり直すプレフィックスキーです |
 | `@pomodoro_revamped_menu_key` | 空 | 操作メニューを開くプレフィックスキーです |
 | `@pomodoro_revamped_help_key` | 空 | ヘルプのポップアップを開くプレフィックスキーです |
+
+どのオプションも、ダッシュ区切りのコマンドオプション（例 `--work 50`）と環境変数（例 `POMODORO_REVAMPED_WORK`）で指定できます。優先順位はコマンドライン、環境変数、tmux オプションの順です。空の tmux オプションは既定値を意味します。`apply` に渡したものは、すべての割り当てとステータスの呼び出しに引き継がれます。
 
 ### 内部状態
 
@@ -144,8 +162,6 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_week_counts` | 曜日ごとの作業回数で、日曜日から始まるカンマ区切りの7つの値です |
 | `@pomodoro_revamped_week_day` | 最後に作業を記録した日の番号で、古い曜日をリセットするために使います |
 
-<a id="key-bindings"></a>
-
 ## キーバインド
 
 | キー | 動作 | オプション |
@@ -157,13 +173,13 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | 未割り当て | 操作メニューを開く | `@pomodoro_revamped_menu_key` |
 | 未割り当て | ヘルプのポップアップを開く | `@pomodoro_revamped_help_key` |
 
-`M-s`は、tmux-revampedファミリーがこのプラグインに割り当てた唯一のキーです。2.0.0より前は、切り替えが`p`で、他の操作は`P`、`_`、`R`、`o`、`?`に割り当てられていました。元に戻すには、そのオプションを設定します。
+`M-s`は、tmux-revampedファミリーがこのプラグインに割り当てた唯一のキーです。他のキーは、オプションを設定するまで割り当てられません。既定のキーを他の誰かが使っている場合はそのままにし、`doctor`が知らせます。
 
 ```tmux
 set -g @pomodoro_revamped_menu_key 'o'
 ```
 
-<a id="how-it-works"></a>
+<a id="仕組み"></a>
 
 ## 仕組み
 
@@ -171,23 +187,97 @@ set -g @pomodoro_revamped_menu_key 'o'
 
 **ファイルなし。** すべての値はtmuxサーバーのオプションにあるので、`/tmp`には何も書かず、片付けるものも残りません。週ごとの集計は、オプションに入れた7枠のリングです。
 
-**描画。** エントリーポイントは`#{pomodoro_status}`を[`src/pomodoro.sh`](src/pomodoro.sh)を呼ぶ`#()`に置き換えるので、カウントダウンは`status-interval`ごとに進みます。バックグラウンドのプロセスは動きません。
+**描画。** エントリーポイントは`#{pomodoro_status}`を[`bin/pomodoro-revamped`](bin/pomodoro-revamped)を呼ぶ`#()`に置き換えるので、カウントダウンは`status-interval`ごとに進みます。バックグラウンドのプロセスは動きません。
 
 **フェーズの変化。** 接続中のクライアントはそれぞれステータス行を更新するため、複数の描画が同じフェーズの変化に気づくことがあります。1つの条件付きtmuxコマンドがその変化を確保し、確保した描画だけが作業回数を数え、フックを実行し、通知を送ります。フックは`run-shell -b`で実行するので、遅いコマンドがステータス行を止めることはありません。
 
+<a id="画面"></a>
+
+## 画面
+
+<details>
+<summary>すべての画面。本物の tmux の中で <code>make screens</code> で録画し、押したキーをステータスラインに表示しています</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/running.png" alt="pomodoro-revamped: prefix M-s でタイマーを開始する"><br><sub><code>prefix M-s</code> でタイマーを開始する。<code>hero.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/paused.png" alt="pomodoro-revamped: prefix M-s で一時停止する"><br><sub><code>prefix M-s</code> で一時停止する。<code>hero.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/timer-menu.png" alt="pomodoro-revamped: メニューのキー prefix M-p でタイマーのメニューを開く"><br><sub>メニューのキー <code>prefix M-p</code> でタイマーのメニューを開く。<code>hero.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/break.png" alt="pomodoro-revamped: メニューの Skip phase で休憩が始まる"><br><sub>メニューの Skip phase で休憩が始まる。<code>hero.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/progress.png" alt="pomodoro-revamped: 進捗バー、今日の回数と目標、終了時刻"><br><sub>進捗バー、今日の回数と目標、終了時刻。<code>hero.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/restarted.png" alt="pomodoro-revamped: やり直しのキー prefix M-r でフェーズを最初から始める"><br><sub>やり直しのキー <code>prefix M-r</code> でフェーズを最初から始める。<code>hero.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help-popup.png" alt="pomodoro-revamped: ヘルプのキー prefix M-o でヘルプを開く"><br><sub>ヘルプのキー <code>prefix M-o</code> でヘルプを開く。<code>hero.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/skipped.png" alt="pomodoro-revamped: スキップのキー prefix M-k で次のフェーズに進む"><br><sub>スキップのキー <code>prefix M-k</code> で次のフェーズに進む。<code>hero.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/cancelled.png" alt="pomodoro-revamped: キャンセルのキー prefix M-c でタイマーを消す"><br><sub>キャンセルのキー <code>prefix M-c</code> でタイマーを消す。<code>hero.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/list.png" alt="pomodoro-revamped: list がすべての割り当てを表示する"><br><sub><code>list</code> がすべての割り当てを表示する。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/status.png" alt="pomodoro-revamped: status が表示を出力する"><br><sub><code>status</code> が表示を出力する。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="pomodoro-revamped: doctor"><br><sub><code>doctor</code>。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/plain-menu.png" alt="pomodoro-revamped: gum なしのメニュー"><br><sub>gum なしのメニュー。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/plain-doctor.png" alt="pomodoro-revamped: メニューからの doctor"><br><sub>メニューからの <code>doctor</code>。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/version.png" alt="pomodoro-revamped: バージョン"><br><sub>バージョン。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="pomodoro-revamped: 不明なコマンド"><br><sub>不明なコマンド。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="pomodoro-revamped: 6 つのテーマのヘッダー"><br><sub>6 つのテーマのヘッダー。<code>themes.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="pomodoro-revamped: ヘルプ"><br><sub>ヘルプ。<code>help.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/accent.png" alt="pomodoro-revamped: POMODORO_REVAMPED_ACCENT によるアクセント"><br><sub><code>POMODORO_REVAMPED_ACCENT</code> によるアクセント。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"></td>
+</tr>
+</table>
+
+</details>
+
+## 移植性
+
+プラグインは POSIX `sh` です。CI は下の各行ですべてのテストを実行します。
+
+| シェル | 状態 |
+|:------|:-------|
+| `dash`、macOS の `/bin/sh` | 対応 |
+| `bash` 3.2 と 5.x、システムの `zsh` と Homebrew の `zsh` | 対応 |
+
+| システム | 状態 |
+|:-------|:-------|
+| macOS | Apple Silicon と Intel の Tahoe。付属のツール、Homebrew の GNU ツール、Homebrew の uutils で確認 |
+| Linux | x86_64 と arm64 の Ubuntu 26.04。GNU coreutils、uutils、BusyBox で確認 |
+
 ## 開発
 
-| コマンド | 内容 |
+| コマンド | 実行内容 |
 |:--------|:-------------|
-| `make test` | batsのテストスイートを実行します |
-| `make lint` | すべてのシェルファイルにshellcheckを実行します |
-| `make coverage` | kcovで行カバレッジを測り、95パーセント未満なら失敗します。Linuxで動きます |
+| `make fmt` | すべてのスクリプトに shfmt `-i 2` をかけます |
+| `make lint` | shfmt、ShellCheck、mandoc、yamllint、actionlint を、指摘ゼロで通します |
+| `make test` | システムの `sh` で bats のテスト |
+| `make test-all` | インストール済みのすべてのシェルでテスト。macOS では bash と zsh の両方のビルドを含みます |
+| `make test-linux` | Ubuntu のコンテナでテスト |
+| `make coverage` | この Mac と Ubuntu のコンテナで bashcov を実行し、合算して 100 パーセントで判定します |
+| `make screens` | 上の画面を、本物のプラグインから tmux の中で VHS で録画します。macOS で実行します |
+| `make install` | コマンド、manページ、補完を `PREFIX` の下に置きます |
 
-テストスイートには`bats-core`とtmuxが必要です。
+macOS では、`brew bundle` を実行すると、これらのターゲットが使うツールがすべて [`Brewfile`](Brewfile) からインストールされます。
+
+コミットは Conventional Commits の形式に従い、そのまま `main` に入ります。`main` で `ci` が成功すると、`release.yml` が semantic-release を実行します。前回のタグ以降に `feat` か `fix` があればリリースを公開し、バージョン定数を更新し、変更内容を [`CHANGELOG.md`](CHANGELOG.md) に追加します。
 
 ## ライセンス
 
-[MIT](LICENSE)
+[MIT](LICENSE)、copyright Gustavo Franco。
 
 <!-- family:begin -->
 

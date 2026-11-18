@@ -1,0 +1,7 @@
+#!/bin/sh
+# shellcheck disable=SC2034
+
+[ -n "${POMODORO_REVAMPED_CORE_LOADED:-}" ] && return 0
+POMODORO_REVAMPED_CORE_LOADED=1
+
+readonly POMODORO_REVAMPED_VERSION="3.0.1"

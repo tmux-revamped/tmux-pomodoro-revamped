@@ -1,0 +1,258 @@
+.TH POMODORO-REVAMPED 1 "2026-11-17" "pomodoro-revamped" "User Commands"
+.SH NAME
+pomodoro-revamped \- a Pomodoro timer in the tmux status bar
+.SH SYNOPSIS
+.B pomodoro-revamped
+.RI [ options ]
+.I command
+.SH DESCRIPTION
+.B pomodoro-revamped
+runs a Pomodoro timer whose whole state lives in tmux options, so it survives
+a detach and writes no file. It stores the second the timer started and the
+seconds it spent paused, and every render derives the phase and the time left
+from them. The entry point
+.B pomodoro-revamped.tmux
+runs
+.B apply
+once when tmux loads the plugin, which binds the toggle key and every other
+key that is set, in one tmux call, and replaces the placeholder
+#{pomodoro_status} in status-left and status-right with a call to
+.BR status .
+.PP
+A round is work periods separated by short breaks and closed by a long break.
+When a phase ends, the render that notices it first claims the change with
+one conditional tmux command, so several clients count one work period, run
+the hooks once and send one notification.
+.PP
+Run with no command on a terminal, it offers a menu.
+.SH COMMANDS
+.TP
+.B apply
+Bind the keys and replace the status placeholder now.
+.TP
+.B list
+Print every tmux command apply would send, one per line, and change nothing.
+.TP
+.B toggle
+Start the timer when it is idle, pause it when it runs, resume it when it is paused.
+.TP
+.B skip
+Jump to the next phase. An idle timer is left alone.
+.TP
+.B restart
+Start the current phase again from its whole length. An idle timer is left alone.
+.TP
+.B cancel
+Stop the timer and clear what it published.
+.TP
+.B status
+Print the status segment, and count a phase that just ended. The status line runs it.
+.TP
+.B doctor
+Print one row per dependency: tmux, the notifier, less, the keys it found bound, gum and the core tools. Exits 1 only when a required tool is missing.
+.TP
+.B version
+Print the version, then the tmux version.
+.TP
+.B help
+Print the help page.
+.SH OPTIONS
+.TP
+.B \-\-json
+.B list
+prints one JSON object.
+.TP
+.BI \-\-theme " name"
+Colours of the terminal interface:
+.BR kodougu ,
+.BR catppuccin\-mocha ,
+.BR catppuccin\-latte ,
+.BR dracula ,
+.BR nord ,
+.BR gruvbox ,
+.B tokyo\-night
+or
+.BR mono .
+The default is
+.BR kodougu .
+.TP
+.BI \-\- setting " value"
+Any tmux option below, named with dashes, such as
+.B \-\-work
+or
+.BR \-\-show\-progress .
+It also takes the form
+.IR \-\-setting = value ,
+and outranks the environment and the tmux option. Given to
+.BR apply ,
+it rides on every binding and on the status call.
+.SH ENVIRONMENT
+.TP
+.BI POMODORO_REVAMPED_ SETTING
+Any tmux option below in capitals, such as
+.BR POMODORO_REVAMPED_WORK .
+It outranks the tmux option.
+.TP
+.B POMODORO_REVAMPED_THEME
+The theme when
+.B \-\-theme
+is not given.
+.TP
+.B POMODORO_REVAMPED_ACCENT
+A colour such as #CBA6F7 that replaces the accent of the theme.
+.TP
+.B KODOUGU_THEME
+The theme of every kodougu and tmux-revamped tool, when neither
+.B \-\-theme
+nor
+.B POMODORO_REVAMPED_THEME
+is set.
+.TP
+.B KODOUGU_ACCENT
+The accent of every kodougu and tmux-revamped tool, when
+.B POMODORO_REVAMPED_ACCENT
+is not set.
+.TP
+.B NO_COLOR
+Turns colour off in every theme.
+.SH TMUX OPTIONS
+An empty tmux option means its default. A key set to off binds nothing.
+.TP
+.B @pomodoro_revamped_toggle_key
+The prefix key that starts, pauses or resumes the timer. off binds nothing. The default is M\-s, left alone when someone else holds it.
+.TP
+.B @pomodoro_revamped_cancel_key
+The prefix key that cancels the timer. The default is none.
+.TP
+.B @pomodoro_revamped_skip_key
+The prefix key that skips to the next phase. The default is none.
+.TP
+.B @pomodoro_revamped_restart_key
+The prefix key that restarts the current phase. The default is none.
+.TP
+.B @pomodoro_revamped_menu_key
+The prefix key that opens a menu of start or pause, skip, restart and cancel. The default is none.
+.TP
+.B @pomodoro_revamped_help_key
+The prefix key that opens the help page in a popup, in less, or whole where less is not installed. The default is none.
+.TP
+.B @pomodoro_revamped_work
+Minutes of a work period. The default is 25.
+.TP
+.B @pomodoro_revamped_break
+Minutes of a short break. The default is 5.
+.TP
+.B @pomodoro_revamped_long_break
+Minutes of the long break that ends a round. The default is 15.
+.TP
+.B @pomodoro_revamped_intervals
+Work periods in a round, before the long break. The default is 4, and 100 at most.
+.TP
+.B @pomodoro_revamped_notify
+1 sends a desktop notification when a phase changes and at the warning. The default is 0.
+.TP
+.B @pomodoro_revamped_bell
+1 rings the bell of every attached terminal when a phase changes. The default is 0.
+.TP
+.B @pomodoro_revamped_warn_seconds
+Above 0, warn once this many seconds before a phase ends. The default is 0.
+.TP
+.B @pomodoro_revamped_quiet_hours
+A window such as 22:00\-08:00 in which no bell rings and no notification is sent. Hooks still run. The default is none.
+.TP
+.B @pomodoro_revamped_goal
+Work periods wanted per day, shown with show_goal. The default is 6.
+.TP
+.B @pomodoro_revamped_show_progress
+1 draws a progress bar before the time. The default is 0.
+.TP
+.B @pomodoro_revamped_show_interval
+0 hides the counter such as [2/4]. The default is 1.
+.TP
+.B @pomodoro_revamped_show_goal
+1 shows today's work periods over the goal. The default is 0.
+.TP
+.B @pomodoro_revamped_show_finish
+1 shows the time of day the phase ends. The default is 0.
+.TP
+.B @pomodoro_revamped_progress_width
+Cells of the progress bar. The default is 8, and 200 at most.
+.TP
+.B @pomodoro_revamped_bar_filled
+The filled cell of the progress bar. The default is #.
+.TP
+.B @pomodoro_revamped_bar_empty
+The empty cell of the progress bar. The default is \-.
+.TP
+.B @pomodoro_revamped_pause_text
+What follows the time while the timer is paused. The default is a space and the word paused.
+.TP
+.B @pomodoro_revamped_work_color
+The tmux style of a work period. The default is #[fg=red].
+.TP
+.B @pomodoro_revamped_break_color
+The tmux style of a short break. The default is #[fg=green].
+.TP
+.B @pomodoro_revamped_long_break_color
+The tmux style of the long break. The default is #[fg=blue].
+.TP
+.B @pomodoro_revamped_work_icon
+An icon shown before a work period. The default is none.
+.TP
+.B @pomodoro_revamped_break_icon
+An icon shown before a short break. The default is none.
+.TP
+.B @pomodoro_revamped_long_break_icon
+An icon shown before the long break. The default is none.
+.TP
+.B @pomodoro_revamped_on_work
+A command tmux runs in the background when a work period starts. The default is none.
+.TP
+.B @pomodoro_revamped_on_break
+A command tmux runs in the background when a short break starts. The default is none.
+.TP
+.B @pomodoro_revamped_on_long_break
+A command tmux runs in the background when the long break starts. The default is none.
+.TP
+.B @pomodoro_revamped_on_cycle
+A command tmux runs in the background when a whole round ends, with the long break. The default is none.
+.TP
+.B @pomodoro_revamped_on_warn
+A command tmux runs in the background at the warning. The default is none.
+.TP
+.B @revamped_theme
+The theme of every tmux-revamped tool, when nothing else sets one. The default
+is
+.BR kodougu .
+.PP
+The timer keeps its state in
+.BR @pomodoro_revamped_state ,
+.BR _start ,
+.BR _paused_total ,
+.BR _paused_at ,
+.BR _last_phase ,
+.BR _warned ,
+.BR _week_counts ,
+.B _week_day
+and
+.BR _transition_claim .
+While it runs,
+.B status
+also publishes
+.BR @pomodoro_revamped_status ,
+the segment,
+.BR _phase ,
+.BR _remaining ,
+the seconds left,
+.BR _fraction ,
+the percent done,
+.BR _week ,
+the week's work periods as a sparkline, and
+.BR _today ,
+today's count, for a theme to read.
+.SH EXIT STATUS
+0 on success, 1 on any failure.
+.SH SEE ALSO
+.BR tmux (1),
+.BR less (1),
+.BR gum (1)

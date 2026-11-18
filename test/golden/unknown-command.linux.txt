@@ -1,0 +1,3 @@
+$ pomodoro-revamped frobnicate
+pomodoro-revamped: unknown command 'frobnicate'. run 'pomodoro-revamped help' for usage.
+exit 1

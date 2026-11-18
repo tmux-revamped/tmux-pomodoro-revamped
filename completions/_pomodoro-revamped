@@ -1,0 +1,62 @@
+#compdef pomodoro-revamped
+
+_pomodoro_revamped() {
+  local -a commands
+  commands=(
+    'apply:bind the keys and the status placeholder now'
+    'list:print every command apply would send'
+    'toggle:start the timer, pause it or resume it'
+    'skip:jump to the next phase'
+    'restart:start the current phase again'
+    'cancel:stop the timer and clear it'
+    'status:print the status segment'
+    'doctor:check this machine'
+    'version:print the version'
+    'help:print the help page'
+  )
+
+  _arguments \
+    '--json[list prints one JSON object]' \
+    '--theme[colours of the terminal interface]:theme:(kodougu catppuccin-mocha catppuccin-latte dracula nord gruvbox tokyo-night mono)' \
+    '--toggle-key[key that starts, pauses or resumes]:value:' \
+    '--cancel-key[key that cancels the timer]:value:' \
+    '--skip-key[key that skips the phase]:value:' \
+    '--restart-key[key that restarts the phase]:value:' \
+    '--menu-key[key of the timer menu]:value:' \
+    '--help-key[key that opens the help page]:value:' \
+    '--work[minutes of a work period]:value:' \
+    '--break[minutes of a short break]:value:' \
+    '--long-break[minutes of the long break]:value:' \
+    '--intervals[work periods before the long break]:value:' \
+    '--notify[desktop notification on a phase change]:value:(0 1)' \
+    '--bell[terminal bell on a phase change]:value:(0 1)' \
+    '--warn-seconds[warn this many seconds before a phase ends]:value:' \
+    '--quiet-hours[window with no bell and no notification]:value:' \
+    '--goal[work periods wanted per day]:value:' \
+    '--show-progress[draw a progress bar]:value:(0 1)' \
+    '--show-interval[show the round counter]:value:(0 1)' \
+    '--show-goal[show today'\''s count over the goal]:value:(0 1)' \
+    '--show-finish[show when the phase ends]:value:(0 1)' \
+    '--progress-width[cells of the progress bar]:value:' \
+    '--bar-filled[the bar'\''s filled cell]:value:' \
+    '--bar-empty[the bar'\''s empty cell]:value:' \
+    '--pause-text[what follows the time while paused]:value:' \
+    '--work-color[style of a work period]:value:' \
+    '--break-color[style of a short break]:value:' \
+    '--long-break-color[style of the long break]:value:' \
+    '--work-icon[icon of a work period]:value:' \
+    '--break-icon[icon of a short break]:value:' \
+    '--long-break-icon[icon of the long break]:value:' \
+    '--on-work[command run when work starts]:value:' \
+    '--on-break[command run when a break starts]:value:' \
+    '--on-long-break[command run when the long break starts]:value:' \
+    '--on-cycle[command run when a whole round ends]:value:' \
+    '--on-warn[command run at the warning]:value:' \
+    '1:command:->command'
+
+  if [[ "${state}" == command ]]; then
+    _describe 'command' commands
+  fi
+}
+
+_pomodoro_revamped "$@"

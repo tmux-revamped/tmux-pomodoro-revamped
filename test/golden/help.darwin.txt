@@ -1,0 +1,92 @@
+$ pomodoro-revamped help
+pomodoro-revamped - a Pomodoro timer in the tmux status bar
+
+usage:
+  pomodoro-revamped apply    bind the keys and the status placeholder now
+  pomodoro-revamped list     print every command apply would send
+  pomodoro-revamped toggle   start the timer, pause it or resume it
+  pomodoro-revamped skip     jump to the next phase
+  pomodoro-revamped restart  start the current phase again
+  pomodoro-revamped cancel   stop the timer and clear it
+  pomodoro-revamped status   print the status segment
+  pomodoro-revamped doctor   check this machine
+  pomodoro-revamped version  print the version
+  pomodoro-revamped help     print this page
+
+options:
+  --json           list prints one JSON object
+  --theme NAME     the look: kodougu, catppuccin-mocha, catppuccin-latte,
+                   dracula, nord, gruvbox, tokyo-night or mono
+  --SETTING VALUE  any tmux option below, named with dashes, such as
+                   --work 50 or --show-progress 1
+
+environment:
+  POMODORO_REVAMPED_SETTING  any tmux option below in capitals, such as
+                             POMODORO_REVAMPED_WORK
+  POMODORO_REVAMPED_THEME    the look, when --theme is not given
+  POMODORO_REVAMPED_ACCENT   a colour such as #CBA6F7 for the accent
+  KODOUGU_THEME              the family look, when neither is given
+  KODOUGU_ACCENT             the family accent, when the tool's is unset
+  NO_COLOR                   turn colour off
+
+tmux options:
+  @pomodoro_revamped_toggle_key        key that starts, pauses or resumes
+                                       (M-s)
+  @pomodoro_revamped_cancel_key        key that cancels the timer (none)
+  @pomodoro_revamped_skip_key          key that skips the phase (none)
+  @pomodoro_revamped_restart_key       key that restarts the phase (none)
+  @pomodoro_revamped_menu_key          key of the timer menu (none)
+  @pomodoro_revamped_help_key          key that opens this page (none)
+  @pomodoro_revamped_work              minutes of a work period (25)
+  @pomodoro_revamped_break             minutes of a short break (5)
+  @pomodoro_revamped_long_break        minutes of the long break (15)
+  @pomodoro_revamped_intervals         work periods before the long break (4)
+  @pomodoro_revamped_notify            1 sends a desktop notification on a
+                                       phase change (0)
+  @pomodoro_revamped_bell              1 rings the terminal bell on a phase
+                                       change (0)
+  @pomodoro_revamped_warn_seconds      warn this many seconds before a phase
+                                       ends (0, never)
+  @pomodoro_revamped_quiet_hours       no bell and no notification inside
+                                       this window, such as 22:00-08:00 (none)
+  @pomodoro_revamped_goal              work periods wanted per day (6)
+  @pomodoro_revamped_show_progress     1 draws a progress bar (0)
+  @pomodoro_revamped_show_interval     0 hides the [2<path> counter (1)
+  @pomodoro_revamped_show_goal         1 shows today's count over the goal (0)
+  @pomodoro_revamped_show_finish       1 shows when the phase ends (0)
+  @pomodoro_revamped_progress_width    cells of the progress bar (8)
+  @pomodoro_revamped_bar_filled        the bar's filled cell (#)
+  @pomodoro_revamped_bar_empty         the bar's empty cell (-)
+  @pomodoro_revamped_pause_text        what follows the time while paused
+                                       ( paused)
+  @pomodoro_revamped_work_color        style of a work period (#[fg=red])
+  @pomodoro_revamped_break_color       style of a short break (#[fg=green])
+  @pomodoro_revamped_long_break_color  style of the long break (#[fg=blue])
+  @pomodoro_revamped_work_icon         icon of a work period (none)
+  @pomodoro_revamped_break_icon        icon of a short break (none)
+  @pomodoro_revamped_long_break_icon   icon of the long break (none)
+  @pomodoro_revamped_on_work           command run when work starts (none)
+  @pomodoro_revamped_on_break          command run when a break starts (none)
+  @pomodoro_revamped_on_long_break     command run when the long break starts
+                                       (none)
+  @pomodoro_revamped_on_cycle          command run when a whole round ends
+                                       (none)
+  @pomodoro_revamped_on_warn           command run at the warning (none)
+  @revamped_theme                      the family look (kodougu)
+
+notes:
+  The entry point runs apply once when tmux loads the plugin. A key set to off
+  binds nothing, and the default key is left alone when someone else holds it,
+  which doctor names. #{pomodoro_status} in status-left or status-right
+  becomes the timer's segment. The timer keeps all of its state in tmux
+  options, so it survives a detach and writes no file. While it runs, the
+  options @pomodoro_revamped_status, _phase, _remaining, _fraction, _week and
+  _today hold the segment, the phase, the seconds left, the percent done, the
+  week's work periods as a sparkline and today's count.
+
+examples:
+  pomodoro-revamped toggle
+  pomodoro-revamped --work 50 --break 10 apply
+  pomodoro-revamped skip
+  pomodoro-revamped doctor
+exit 0

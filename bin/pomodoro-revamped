@@ -1,0 +1,281 @@
+#!/bin/sh
+[ -n "${ZSH_VERSION:-}" ] && emulate sh
+set -eu
+
+pomodoro_revamped_self="$0"
+case "${pomodoro_revamped_self}" in
+*/*) ;;
+*) pomodoro_revamped_self="$(command -v -- "${pomodoro_revamped_self}")" ;;
+esac
+pomodoro_revamped_lib="$(cd "${pomodoro_revamped_self%/*}/../lib" && pwd)" || exit 1
+for pomodoro_revamped_inherited in $(env | sed -n -e 's/^\(REVAMPED_[A-Za-z0-9_]*\)=.*/\1/p' -e 's/^\(POMODORO_REVAMPED_[A-Za-z0-9_]*_LOADED\)=.*/\1/p'); do
+  case "${pomodoro_revamped_inherited}" in
+  REVAMPED_TEST_*) continue ;;
+  *) unset "${pomodoro_revamped_inherited}" ;;
+  esac
+done
+REVAMPED_LIB="${pomodoro_revamped_lib}"
+
+# shellcheck source=SCRIPTDIR/../lib/core.sh
+. "${REVAMPED_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/pomodoro.sh
+. "${REVAMPED_LIB}/pomodoro.sh"
+
+pomodoro_revamped_interface() {
+  # shellcheck source=SCRIPTDIR/../lib/notify.sh
+  . "${REVAMPED_LIB}/notify.sh"
+  # shellcheck disable=SC2034
+  REVAMPED_UI_NAME=pomodoro-revamped REVAMPED_UI_VERSION="${POMODORO_REVAMPED_VERSION}" REVAMPED_UI_TAGLINE="a Pomodoro timer in the status bar"
+  if [ -n "${POMODORO_REVAMPED_ACCENT:-}" ]; then
+    # shellcheck disable=SC2034
+    REVAMPED_UI_ACCENT_CHOICE="${POMODORO_REVAMPED_ACCENT}" REVAMPED_UI_ACCENT_NAME=POMODORO_REVAMPED_ACCENT
+  fi
+  # shellcheck source=SCRIPTDIR/../lib/cli.sh
+  . "${REVAMPED_LIB}/cli.sh"
+  # shellcheck source=SCRIPTDIR/../lib/doctor.sh
+  . "${REVAMPED_LIB}/doctor.sh"
+}
+
+pomodoro_revamped_usage() {
+  pomodoro_revamped_interface
+  revamped_cli_usage_error "$1"
+}
+
+pomodoro_revamped_help() {
+  revamped_cli_help_page <<'HELP'
+pomodoro-revamped - a Pomodoro timer in the tmux status bar
+
+usage:
+  pomodoro-revamped apply    bind the keys and the status placeholder now
+  pomodoro-revamped list     print every command apply would send
+  pomodoro-revamped toggle   start the timer, pause it or resume it
+  pomodoro-revamped skip     jump to the next phase
+  pomodoro-revamped restart  start the current phase again
+  pomodoro-revamped cancel   stop the timer and clear it
+  pomodoro-revamped status   print the status segment
+  pomodoro-revamped doctor   check this machine
+  pomodoro-revamped version  print the version
+  pomodoro-revamped help     print this page
+
+options:
+  --json           list prints one JSON object
+  --theme NAME     the look: kodougu, catppuccin-mocha, catppuccin-latte,
+                   dracula, nord, gruvbox, tokyo-night or mono
+  --SETTING VALUE  any tmux option below, named with dashes, such as
+                   --work 50 or --show-progress 1
+
+environment:
+  POMODORO_REVAMPED_SETTING  any tmux option below in capitals, such as
+                             POMODORO_REVAMPED_WORK
+  POMODORO_REVAMPED_THEME    the look, when --theme is not given
+  POMODORO_REVAMPED_ACCENT   a colour such as #CBA6F7 for the accent
+  KODOUGU_THEME              the family look, when neither is given
+  KODOUGU_ACCENT             the family accent, when the tool's is unset
+  NO_COLOR                   turn colour off
+
+tmux options:
+  @pomodoro_revamped_toggle_key        key that starts, pauses or resumes
+                                       (M-s)
+  @pomodoro_revamped_cancel_key        key that cancels the timer (none)
+  @pomodoro_revamped_skip_key          key that skips the phase (none)
+  @pomodoro_revamped_restart_key       key that restarts the phase (none)
+  @pomodoro_revamped_menu_key          key of the timer menu (none)
+  @pomodoro_revamped_help_key          key that opens this page (none)
+  @pomodoro_revamped_work              minutes of a work period (25)
+  @pomodoro_revamped_break             minutes of a short break (5)
+  @pomodoro_revamped_long_break        minutes of the long break (15)
+  @pomodoro_revamped_intervals         work periods before the long break (4)
+  @pomodoro_revamped_notify            1 sends a desktop notification on a
+                                       phase change (0)
+  @pomodoro_revamped_bell              1 rings the terminal bell on a phase
+                                       change (0)
+  @pomodoro_revamped_warn_seconds      warn this many seconds before a phase
+                                       ends (0, never)
+  @pomodoro_revamped_quiet_hours       no bell and no notification inside
+                                       this window, such as 22:00-08:00 (none)
+  @pomodoro_revamped_goal              work periods wanted per day (6)
+  @pomodoro_revamped_show_progress     1 draws a progress bar (0)
+  @pomodoro_revamped_show_interval     0 hides the [2/4] counter (1)
+  @pomodoro_revamped_show_goal         1 shows today's count over the goal (0)
+  @pomodoro_revamped_show_finish       1 shows when the phase ends (0)
+  @pomodoro_revamped_progress_width    cells of the progress bar (8)
+  @pomodoro_revamped_bar_filled        the bar's filled cell (#)
+  @pomodoro_revamped_bar_empty         the bar's empty cell (-)
+  @pomodoro_revamped_pause_text        what follows the time while paused
+                                       ( paused)
+  @pomodoro_revamped_work_color        style of a work period (#[fg=red])
+  @pomodoro_revamped_break_color       style of a short break (#[fg=green])
+  @pomodoro_revamped_long_break_color  style of the long break (#[fg=blue])
+  @pomodoro_revamped_work_icon         icon of a work period (none)
+  @pomodoro_revamped_break_icon        icon of a short break (none)
+  @pomodoro_revamped_long_break_icon   icon of the long break (none)
+  @pomodoro_revamped_on_work           command run when work starts (none)
+  @pomodoro_revamped_on_break          command run when a break starts (none)
+  @pomodoro_revamped_on_long_break     command run when the long break starts
+                                       (none)
+  @pomodoro_revamped_on_cycle          command run when a whole round ends
+                                       (none)
+  @pomodoro_revamped_on_warn           command run at the warning (none)
+  @revamped_theme                      the family look (kodougu)
+
+notes:
+  The entry point runs apply once when tmux loads the plugin. A key set to off
+  binds nothing, and the default key is left alone when someone else holds it,
+  which doctor names. #{pomodoro_status} in status-left or status-right
+  becomes the timer's segment. The timer keeps all of its state in tmux
+  options, so it survives a detach and writes no file. While it runs, the
+  options @pomodoro_revamped_status, _phase, _remaining, _fraction, _week and
+  _today hold the segment, the phase, the seconds left, the percent done, the
+  week's work periods as a sparkline and today's count.
+
+examples:
+  pomodoro-revamped toggle
+  pomodoro-revamped --work 50 --break 10 apply
+  pomodoro-revamped skip
+  pomodoro-revamped doctor
+HELP
+}
+
+pomodoro_revamped_version() {
+  pomodoro_revamped_tmux=$(tmux -V 2>/dev/null) || pomodoro_revamped_tmux=missing
+  printf '%s %s\n' pomodoro-revamped "${POMODORO_REVAMPED_VERSION}"
+  printf 'tmux: %s\n' "${pomodoro_revamped_tmux#tmux }"
+}
+
+pomodoro_revamped_doctor_optional() {
+  if revamped_has_command "$1"; then
+    pomodoro_revamped_doctor_optional_path=$(command -v "$1")
+    revamped_doctor_line "$1" ok "${pomodoro_revamped_doctor_optional_path}"
+    return 0
+  fi
+  revamped_doctor_line "$1" warn "$2"
+}
+
+pomodoro_revamped_doctor_keys() {
+  pomodoro_revamped_plan
+  if [ -n "${POMODORO_REVAMPED_SKIPPED}" ]; then
+    revamped_doctor_line keys warn "already bound and left alone: ${POMODORO_REVAMPED_SKIPPED}"
+    return 0
+  fi
+  revamped_doctor_line keys ok "every key it binds is free or its own"
+}
+
+pomodoro_revamped_doctor() {
+  revamped_doctor_tmux
+  revamped_doctor_notifier
+  pomodoro_revamped_doctor_optional less "the help key pages with it, and shows the whole page without it"
+  pomodoro_revamped_doctor_keys
+  revamped_doctor_gum
+  revamped_doctor_core_tools awk sed tr date
+  revamped_doctor_finish
+  [ "${REVAMPED_DOCTOR_MISSING}" -eq 0 ] || exit 1
+}
+
+pomodoro_revamped_list() {
+  pomodoro_revamped_plan
+  if [ -n "${pomodoro_revamped_json}" ]; then
+    pomodoro_revamped_json
+    return 0
+  fi
+  pomodoro_revamped_lines
+}
+
+pomodoro_revamped_apply_command() {
+  pomodoro_revamped_apply
+  pomodoro_revamped_sent=$(pomodoro_revamped_bindings)
+  case "${pomodoro_revamped_sent}" in
+  1) printf 'Applied. 1 key is bound.\n' ;;
+  *) printf 'Applied. %s keys are bound.\n' "${pomodoro_revamped_sent}" ;;
+  esac
+}
+
+pomodoro_revamped_menu() {
+  revamped_cli_require_terminal
+  pomodoro_revamped_choice=$(revamped_cli_menu "List the bindings" "Apply them now" "Check this machine" "Help")
+  case "${pomodoro_revamped_choice}" in
+  "List the bindings") pomodoro_revamped_list ;;
+  "Apply them now") pomodoro_revamped_apply_command ;;
+  "Check this machine") pomodoro_revamped_doctor ;;
+  *) pomodoro_revamped_help ;;
+  esac
+}
+
+pomodoro_revamped_dispatch() {
+  case "${1:-}" in
+  doctor) pomodoro_revamped_doctor ;;
+  version | --version | -V) pomodoro_revamped_version ;;
+  help | --help | -h) pomodoro_revamped_help ;;
+  list) pomodoro_revamped_list ;;
+  "") pomodoro_revamped_menu ;;
+  *) revamped_cli_usage_error "unknown command '$1'" ;;
+  esac
+}
+
+pomodoro_revamped_known() {
+  [ "$1" != --theme ] || return 0
+  pomodoro_revamped_known_name=$(pomodoro_revamped_setting_name "$1")
+  [ -n "${pomodoro_revamped_known_name}" ] || pomodoro_revamped_usage "unknown option '$1'"
+}
+
+pomodoro_revamped_set() {
+  pomodoro_revamped_set_upper=$(printf '%s\n' "$1" | tr '[:lower:]' '[:upper:]')
+  export "POMODORO_REVAMPED_${pomodoro_revamped_set_upper}=$2"
+}
+
+pomodoro_revamped_option() {
+  pomodoro_revamped_option_name=$(pomodoro_revamped_setting_name "$1")
+  [ -n "${pomodoro_revamped_option_name}" ] || pomodoro_revamped_usage "unknown option '$1'"
+  pomodoro_revamped_set "${pomodoro_revamped_option_name}" "$2"
+}
+
+pomodoro_revamped_main() {
+  pomodoro_revamped_theme="${POMODORO_REVAMPED_THEME:-}" pomodoro_revamped_json="" pomodoro_revamped_left=$# pomodoro_revamped_rest=0
+  while [ "${pomodoro_revamped_left}" -gt 0 ]; do
+    pomodoro_revamped_arg="$1"
+    shift
+    pomodoro_revamped_left=$((pomodoro_revamped_left - 1))
+    case "${pomodoro_revamped_rest}:${pomodoro_revamped_arg}" in
+    1:*) set -- "$@" "${pomodoro_revamped_arg}" ;;
+    0:--) pomodoro_revamped_rest=1 ;;
+    0:--json) pomodoro_revamped_json=1 ;;
+    0:-h | 0:-V | 0:--help | 0:--version) set -- "$@" "${pomodoro_revamped_arg}" ;;
+    0:--theme=*) pomodoro_revamped_theme="${pomodoro_revamped_arg#--theme=}" ;;
+    0:--*=*) pomodoro_revamped_option "${pomodoro_revamped_arg%%=*}" "${pomodoro_revamped_arg#*=}" ;;
+    0:--*)
+      pomodoro_revamped_known "${pomodoro_revamped_arg}"
+      [ "${pomodoro_revamped_left}" -gt 0 ] || pomodoro_revamped_usage "option '${pomodoro_revamped_arg}' needs a value"
+      if [ "${pomodoro_revamped_arg}" = --theme ]; then
+        pomodoro_revamped_theme="$1"
+      else
+        pomodoro_revamped_option "${pomodoro_revamped_arg}" "$1"
+      fi
+      shift
+      pomodoro_revamped_left=$((pomodoro_revamped_left - 1))
+      ;;
+    0:-?*) pomodoro_revamped_usage "unknown option '${pomodoro_revamped_arg}'" ;;
+    *) set -- "$@" "${pomodoro_revamped_arg}" ;;
+    esac
+  done
+  pomodoro_revamped_run "${pomodoro_revamped_theme}" "$@"
+}
+
+pomodoro_revamped_run() {
+  pomodoro_revamped_run_theme="$1"
+  shift
+  [ -z "${pomodoro_revamped_json}" ] || [ "${1:-}" = list ] || pomodoro_revamped_usage "option '--json' works only with list"
+  case "${1:-}" in
+  apply) pomodoro_revamped_apply ;;
+  toggle) pomodoro_revamped_toggle ;;
+  cancel) pomodoro_revamped_cancel ;;
+  skip) pomodoro_revamped_skip ;;
+  restart) pomodoro_revamped_restart ;;
+  status) pomodoro_revamped_status ;;
+  *)
+    pomodoro_revamped_interface
+    revamped_cli_start "${pomodoro_revamped_run_theme}"
+    pomodoro_revamped_dispatch "$@"
+    ;;
+  esac
+}
+
+pomodoro_revamped_main "$@"

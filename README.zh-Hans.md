@@ -4,48 +4,48 @@
 
 <strong>tmux 状态栏中的番茄钟计时器，所有状态都保存在 tmux 选项中，不使用临时文件。</strong>
 
-[English](README.md) | [日本語](README.ja.md) | 简体中文 | [繁體中文（香港）](README.zh-HK.md)
+[English](README.md) &nbsp;|&nbsp; [日本語](README.ja.md) &nbsp;|&nbsp; 简体中文 &nbsp;|&nbsp; [繁體中文（香港）](README.zh-HK.md)
 
-[![family](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-pomodoro-revamped/family.yml?branch=main&style=flat-square&label=family)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/family.yml)
-[![tests](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-pomodoro-revamped/tests.yml?branch=main&style=flat-square&label=tests)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/tests.yml)
+[![ci](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-pomodoro-revamped/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/tmux-revamped/tmux-pomodoro-revamped?style=flat-square&label=release)](https://github.com/tmux-revamped/tmux-pomodoro-revamped/releases/latest)
 [![openssf scorecard](https://img.shields.io/ossf-scorecard/github.com/tmux-revamped/tmux-pomodoro-revamped?style=flat-square&label=openssf%20scorecard)](https://scorecard.dev/viewer/?uri=github.com/tmux-revamped/tmux-pomodoro-revamped)
 [![license](https://img.shields.io/github/license/tmux-revamped/tmux-pomodoro-revamped?style=flat-square&label=license)](LICENSE)
 
 <p align="center">
-  <a href="#what-it-does">功能</a> |
-  <a href="#installation">安装</a> |
-  <a href="#usage">用法</a> |
-  <a href="#configuration">配置</a> |
-  <a href="#key-bindings">按键绑定</a> |
-  <a href="#how-it-works">工作原理</a>
+  <a href="#快速开始"><strong>快速开始</strong></a> &nbsp;|&nbsp;
+  <a href="#用法">用法</a> &nbsp;|&nbsp;
+  <a href="#工作原理">工作原理</a> &nbsp;|&nbsp;
+  <a href="#界面">界面</a>
 </p>
 
 </div>
 
-**工作 25 分钟，短休息 5 分钟，每 4 个工作时段后长休息 15 分钟。0 个临时文件。已在 macOS 和 Linux 上测试。**
+<p align="center">
+  <img src="screens/hero.gif" alt="pomodoro-revamped 在状态栏中开始计时、暂停、从菜单跳到休息，并显示进度条" width="800">
+</p>
 
----
-
-<a id="what-it-does"></a>
-
-## 功能
+```console
+$ pomodoro-revamped toggle
+$ pomodoro-revamped --show-progress 1 status
+#[fg=red]-------- 25:00 [1/4]#[default]
+```
 
 计时器在状态栏中倒数工作时段和休息时间，然后重复这个循环。暂停和继续不会损失时间。每次阶段切换时，它可以发送桌面通知、响起终端铃声，并运行你指定的 shell 命令。它还会记录 7 天内完成的工作时段数。
 
-## 环境要求
+---
 
-| 项目 | 版本或说明 |
-|:------------|:----------------|
-| tmux | 3.2 或更高版本，帮助弹窗需要 |
-| bash | 3.2 或更高版本，因此 macOS 自带的 `/bin/bash` 可以使用 |
-| 操作系统 | Apple Silicon 和 Intel 上的 macOS，x86_64 和 arm64 上的 Linux |
-| 核心工具 | BSD、GNU 或 uutils coreutils |
-| `osascript` 或 `notify-send` | 可选，用于 macOS 或 Linux 上的桌面通知 |
+## 快速开始
 
-<a id="installation"></a>
+### 前提条件
 
-## 安装
+| 工具 | 版本 | 用途 |
+|:-----|:--------|:---------|
+| tmux | 3.2 或更高 | 家族的最低版本，帮助弹窗也需要它 |
+| `osascript` 或 `notify-send` | 可选 | macOS 或 Linux 上的桌面通知 |
+| `less` | 可选 | 帮助键用它分页显示帮助页；没有它时，弹窗显示整页，按 Enter 关闭 |
+| gum | 可选 | `pomodoro-revamped` 的菜单、表格和颜色；没有它，所有命令都输出纯文本 |
+
+### 安装
 
 使用 [TPM](https://github.com/tmux-plugins/tpm) 时，把插件和占位符加入 `~/.tmux.conf`，然后按 `prefix + I`：
 
@@ -64,7 +64,13 @@ git clone https://github.com/tmux-revamped/tmux-pomodoro-revamped ~/.tmux/plugin
 run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 ```
 
-<a id="usage"></a>
+在克隆的目录中运行 `make install`，还会把 `pomodoro-revamped` 放进 `~/.local/bin`，把它的 man 手册和补全放在 `~/.local/share` 下。
+
+### 验证
+
+```bash
+~/.tmux/plugins/tmux-pomodoro-revamped/bin/pomodoro-revamped doctor
+```
 
 ## 用法
 
@@ -76,16 +82,26 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 
 | 选项 | 值 |
 |:-------|:------|
-| `@pomodoro_status` | 渲染出的片段，与 `#{pomodoro_status}` 的文本相同 |
-| `@pomodoro_phase` | `work`、`break` 或 `long_break` |
-| `@pomodoro_remaining` | 当前阶段剩余的秒数 |
-| `@pomodoro_fraction` | 当前阶段已过去的百分比 |
-| `@pomodoro_week` | 最近 7 天内按星期统计的工作时段火花线，从星期日开始，用 `_.-=+*%@` 绘制 |
-| `@pomodoro_today` | 今天完成的工作时段数 |
+| `@pomodoro_revamped_status` | 渲染出的片段，与 `#{pomodoro_status}` 的文本相同 |
+| `@pomodoro_revamped_phase` | `work`、`break` 或 `long_break` |
+| `@pomodoro_revamped_remaining` | 当前阶段剩余的秒数 |
+| `@pomodoro_revamped_fraction` | 当前阶段已过去的百分比 |
+| `@pomodoro_revamped_week` | 最近 7 天内按星期统计的工作时段火花线，从星期日开始，用 `_.-=+*%@` 绘制 |
+| `@pomodoro_revamped_today` | 今天完成的工作时段数 |
 
-同样的操作也可以在 shell 中以 `~/.tmux/plugins/tmux-pomodoro-revamped/src/pomodoro.sh <action>` 运行，action 为 `toggle`、`cancel`、`skip`、`restart`、`menu` 或 `help`。
-
-<a id="configuration"></a>
+| 命令 | 作用 |
+|:--------|:-------------|
+| `pomodoro-revamped apply` | 立即绑定按键并替换占位符；插件加载时入口点会运行它 |
+| `pomodoro-revamped list` | 打印 `apply` 会发送的每条命令，不做任何修改；`--json` 输出一个对象 |
+| `pomodoro-revamped toggle` | 开始、暂停或继续计时 |
+| `pomodoro-revamped skip` | 跳到下一个阶段 |
+| `pomodoro-revamped restart` | 重新开始当前阶段 |
+| `pomodoro-revamped cancel` | 停止计时并清除 |
+| `pomodoro-revamped status` | 打印状态片段；状态栏会运行它 |
+| `pomodoro-revamped doctor` | 每个依赖一行，包括通知工具、`less` 和保持不动的按键 |
+| `pomodoro-revamped version` | 版本，然后是 tmux 版本 |
+| `pomodoro-revamped help` | 帮助页；`man pomodoro-revamped` 记录相同的命令和设置 |
+| `pomodoro-revamped` | 在终端上显示菜单 |
 
 ## 配置
 
@@ -112,7 +128,7 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_work_icon` | 空 | 工作倒计时之前的文本，例如 Nerd Font 的番茄图标 |
 | `@pomodoro_revamped_break_icon` | 空 | 短休息倒计时之前的文本 |
 | `@pomodoro_revamped_long_break_icon` | 空 | 长休息倒计时之前的文本 |
-| `@pomodoro_revamped_notify` | `0` | `1` 在每次阶段切换和剩余一分钟提醒时发送桌面通知。未设置此项时，旧名称 `@pomodoro_revamped_notifications` 仍然有效 |
+| `@pomodoro_revamped_notify` | `0` | `1` 在每次阶段切换和剩余一分钟提醒时发送桌面通知 |
 | `@pomodoro_revamped_bell` | `0` | `1` 在阶段切换时让每个已连接的客户端响铃 |
 | `@pomodoro_revamped_quiet_hours` | 空 | 例如 `22:00-07:00` 的时间段，在此期间静默通知和铃声 |
 | `@pomodoro_revamped_warn_seconds` | `0` | 阶段结束前多少秒提醒一次。`0` 关闭提醒 |
@@ -127,6 +143,8 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_restart_key` | 空 | 重新开始当前阶段的前缀键 |
 | `@pomodoro_revamped_menu_key` | 空 | 打开控制菜单的前缀键 |
 | `@pomodoro_revamped_help_key` | 空 | 打开帮助弹窗的前缀键 |
+
+每个选项也可以用带连字符的命令选项（例如 `--work 50`）和环境变量（例如 `POMODORO_REVAMPED_WORK`）设置；命令行优先于环境变量，环境变量优先于 tmux 选项。空的 tmux 选项表示使用默认值。传给 `apply` 的选项会随每个绑定和状态调用一起生效。
 
 ### 内部状态
 
@@ -144,8 +162,6 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_week_counts` | 每个星期几的工作时段数，从星期日开始的 7 个逗号分隔值 |
 | `@pomodoro_revamped_week_day` | 最近一次记录工作时段的日序号，用于重置过期的星期数据 |
 
-<a id="key-bindings"></a>
-
 ## 按键绑定
 
 | 按键 | 作用 | 选项 |
@@ -157,13 +173,13 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | 未绑定 | 打开控制菜单 | `@pomodoro_revamped_menu_key` |
 | 未绑定 | 打开帮助弹窗 | `@pomodoro_revamped_help_key` |
 
-`M-s` 是 tmux-revamped 家族分配给本插件的唯一按键。2.0.0 之前，切换键是 `p`，其他操作绑定在 `P`、`_`、`R`、`o` 和 `?` 上。要恢复某个按键，设置对应的选项：
+`M-s` 是 tmux-revamped 家族分配给本插件的唯一按键。其他按键在你设置对应选项之前不会绑定；默认按键已被别人占用时会保持不动，并由 `doctor` 报告：
 
 ```tmux
 set -g @pomodoro_revamped_menu_key 'o'
 ```
 
-<a id="how-it-works"></a>
+<a id="工作原理"></a>
 
 ## 工作原理
 
@@ -171,23 +187,97 @@ set -g @pomodoro_revamped_menu_key 'o'
 
 **没有文件。** 所有值都保存在 tmux 服务器选项中，因此不会在 `/tmp` 下写入任何内容，也没有需要清理的东西。每周统计是保存在一个选项中的 7 格环形缓冲。
 
-**渲染。** 入口脚本把 `#{pomodoro_status}` 替换为调用 [`src/pomodoro.sh`](src/pomodoro.sh) 的 `#()`，因此倒计时每个 `status-interval` 前进一次。没有后台进程运行。
+**渲染。** 入口脚本把 `#{pomodoro_status}` 替换为调用 [`bin/pomodoro-revamped`](bin/pomodoro-revamped) 的 `#()`，因此倒计时每个 `status-interval` 前进一次。没有后台进程运行。
 
 **阶段切换。** 每个已连接的客户端都会刷新状态栏，所以多次渲染可能会发现同一次阶段切换。一条条件式 tmux 命令认领这次切换，只有认领成功的渲染会计入工作时段、运行钩子并发送提醒。钩子通过 `run-shell -b` 运行，因此慢命令不会卡住状态栏。
 
+<a id="界面"></a>
+
+## 界面
+
+<details>
+<summary>所有界面，在真实的 tmux 中用 <code>make screens</code> 录制，每个按键显示在状态栏上</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/running.png" alt="pomodoro-revamped：prefix M-s 开始计时"><br><sub><code>prefix M-s</code> 开始计时，来自 <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/paused.png" alt="pomodoro-revamped：prefix M-s 暂停"><br><sub><code>prefix M-s</code> 暂停，来自 <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/timer-menu.png" alt="pomodoro-revamped：菜单键 prefix M-p 打开计时菜单"><br><sub>菜单键 <code>prefix M-p</code> 打开计时菜单，来自 <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/break.png" alt="pomodoro-revamped：从菜单选择 Skip phase 开始休息"><br><sub>从菜单选择 Skip phase 开始休息，来自 <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/progress.png" alt="pomodoro-revamped：进度条、今日次数与目标、结束时间"><br><sub>进度条、今日次数与目标、结束时间，来自 <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/restarted.png" alt="pomodoro-revamped：重新开始键 prefix M-r 让当前阶段从头开始"><br><sub>重新开始键 <code>prefix M-r</code> 让当前阶段从头开始，来自 <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help-popup.png" alt="pomodoro-revamped：帮助键 prefix M-o 打开帮助页"><br><sub>帮助键 <code>prefix M-o</code> 打开帮助页，来自 <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/skipped.png" alt="pomodoro-revamped：跳过键 prefix M-k 跳到下一个阶段"><br><sub>跳过键 <code>prefix M-k</code> 跳到下一个阶段，来自 <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/cancelled.png" alt="pomodoro-revamped：取消键 prefix M-c 清除计时"><br><sub>取消键 <code>prefix M-c</code> 清除计时，来自 <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/list.png" alt="pomodoro-revamped：list 打印每个绑定"><br><sub><code>list</code> 打印每个绑定，来自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/status.png" alt="pomodoro-revamped：status 打印状态片段"><br><sub><code>status</code> 打印状态片段，来自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="pomodoro-revamped：doctor"><br><sub><code>doctor</code>，来自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/plain-menu.png" alt="pomodoro-revamped：没有 gum 的菜单"><br><sub>没有 gum 的菜单，来自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/plain-doctor.png" alt="pomodoro-revamped：从菜单运行 doctor"><br><sub>从菜单运行 <code>doctor</code>，来自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/version.png" alt="pomodoro-revamped：版本"><br><sub>版本，来自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="pomodoro-revamped：未知命令"><br><sub>未知命令，来自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="pomodoro-revamped：六种主题下的标题"><br><sub>六种主题下的标题，来自 <code>themes.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="pomodoro-revamped：帮助页"><br><sub>帮助页，来自 <code>help.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/accent.png" alt="pomodoro-revamped：来自 POMODORO_REVAMPED_ACCENT 的强调色"><br><sub>来自 <code>POMODORO_REVAMPED_ACCENT</code> 的强调色，来自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"></td>
+</tr>
+</table>
+
+</details>
+
+## 可移植性
+
+插件是 POSIX `sh`。CI 在下面每一行上运行全部测试。
+
+| Shell | 状态 |
+|:------|:-------|
+| `dash`、macOS 上的 `/bin/sh` | 支持 |
+| `bash` 3.2 和 5.x、系统自带的 `zsh` 和 Homebrew 的 `zsh` | 支持 |
+
+| 系统 | 状态 |
+|:-------|:-------|
+| macOS | Apple Silicon 和 Intel 上的 Tahoe，使用系统自带的工具、Homebrew 的 GNU 工具和 Homebrew 的 uutils |
+| Linux | x86_64 和 arm64 上的 Ubuntu 26.04，使用 GNU coreutils、uutils 和 BusyBox |
+
 ## 开发
 
-| 命令 | 作用 |
+| 命令 | 运行内容 |
 |:--------|:-------------|
-| `make test` | 运行 bats 测试套件 |
-| `make lint` | 对所有 shell 文件运行 shellcheck |
-| `make coverage` | 用 kcov 测量行覆盖率，低于 95% 时失败，在 Linux 上运行 |
+| `make fmt` | 对每个脚本运行 shfmt `-i 2` |
+| `make lint` | shfmt、ShellCheck、mandoc、yamllint 和 actionlint，零告警 |
+| `make test` | 在系统 `sh` 下运行 bats 测试 |
+| `make test-all` | 在每个已安装的 shell 下运行测试，macOS 上包括 bash 和 zsh 的两种构建 |
+| `make test-linux` | 在 Ubuntu 容器中运行测试 |
+| `make coverage` | 在这台 Mac 和 Ubuntu 容器中运行 bashcov，合并后以 100% 为门槛 |
+| `make screens` | 用 VHS 在 tmux 中从真实插件录制上面的界面，在 macOS 上运行 |
+| `make install` | 把命令、man 手册和补全安装到 `PREFIX` 下 |
 
-测试套件需要 `bats-core` 和 tmux。
+在 macOS 上，运行 `brew bundle` 会根据 [`Brewfile`](Brewfile) 安装这些目标用到的所有工具。
+
+提交遵循 Conventional Commits 格式，直接进入 `main`。`main` 上的 `ci` 通过后，`release.yml` 运行 semantic-release：自上一个标签以来的每个 `feat` 或 `fix` 都会发布新版本，更新版本常量，并把说明写进 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 许可证
 
-[MIT](LICENSE)
+[MIT](LICENSE)，copyright Gustavo Franco。
 
 <!-- family:begin -->
 
