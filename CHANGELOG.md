@@ -1,5 +1,24 @@
 # Changelog
 
+# [4.0.0](https://github.com/tmux-revamped/tmux-pomodoro-revamped/compare/v3.0.1...v4.0.0) (2026-11-18)
+
+
+* feat!: rewrite the plugin in POSIX sh ([75b1c88](https://github.com/tmux-revamped/tmux-pomodoro-revamped/commit/75b1c882b0301f19f8cdaf86117e399feb6c44bd))
+
+
+### BREAKING CHANGES
+
+* the script moved from src/pomodoro.sh to
+bin/pomodoro-revamped. The published options @pomodoro_status,
+@pomodoro_phase, @pomodoro_remaining, @pomodoro_fraction, @pomodoro_week
+and @pomodoro_today are now @pomodoro_revamped_status, _phase,
+_remaining, _fraction, _week and _today.
+@pomodoro_revamped_notifications is no longer read; set
+@pomodoro_revamped_notify. The menu and help commands are gone: the menu
+key opens the menu, and help prints the help page. bash is no longer
+required. A tmux option set to nothing now means its default, where it
+used to stay empty.
+
 All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
