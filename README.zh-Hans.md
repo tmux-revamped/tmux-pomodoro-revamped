@@ -144,7 +144,7 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_menu_key` | 空 | 打开控制菜单的前缀键 |
 | `@pomodoro_revamped_help_key` | 空 | 打开帮助弹窗的前缀键 |
 
-每个选项也可以用带连字符的命令选项（例如 `--work 50`）和环境变量（例如 `POMODORO_REVAMPED_WORK`）设置；命令行优先于环境变量，环境变量优先于 tmux 选项。空的 tmux 选项表示使用默认值。传给 `apply` 的选项会随每个绑定和状态调用一起生效。
+每个选项也可以用带连字符的命令选项（例如 `--work 50`）和环境变量（例如 `POMODORO_REVAMPED_WORK`）设置；命令行优先于环境变量，环境变量优先于 tmux 选项。空的 tmux 选项表示使用默认值。`doctor` 会指出值无法识别的设置。传给 `apply` 的选项会随每个绑定和状态调用一起生效。
 
 ### 内部状态
 

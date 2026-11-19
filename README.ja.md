@@ -144,7 +144,7 @@ run-shell ~/.tmux/plugins/tmux-pomodoro-revamped/pomodoro-revamped.tmux
 | `@pomodoro_revamped_menu_key` | 空 | 操作メニューを開くプレフィックスキーです |
 | `@pomodoro_revamped_help_key` | 空 | ヘルプのポップアップを開くプレフィックスキーです |
 
-どのオプションも、ダッシュ区切りのコマンドオプション（例 `--work 50`）と環境変数（例 `POMODORO_REVAMPED_WORK`）で指定できます。優先順位はコマンドライン、環境変数、tmux オプションの順です。空の tmux オプションは既定値を意味します。`apply` に渡したものは、すべての割り当てとステータスの呼び出しに引き継がれます。
+どのオプションも、ダッシュ区切りのコマンドオプション（例 `--work 50`）と環境変数（例 `POMODORO_REVAMPED_WORK`）で指定できます。優先順位はコマンドライン、環境変数、tmux オプションの順です。空の tmux オプションは既定値を意味します。`doctor` は、プラグインが認識できない値を持つ設定の名前を表示します。`apply` に渡したものは、すべての割り当てとステータスの呼び出しに引き継がれます。
 
 ### 内部状態
 

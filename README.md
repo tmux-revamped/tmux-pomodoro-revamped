@@ -144,7 +144,7 @@ Set any option in `~/.tmux.conf` before the plugin loads.
 | `@pomodoro_revamped_menu_key` | empty | Prefix key that opens the control menu |
 | `@pomodoro_revamped_help_key` | empty | Prefix key that opens the help popup |
 
-Every option is also a command option with dashes, such as `--work 50`, and an environment variable, such as `POMODORO_REVAMPED_WORK`; the command line wins over the environment, and the environment over the tmux option. An empty tmux option means its default. One given to `apply` rides on every binding and on the status call.
+Every option is also a command option with dashes, such as `--work 50`, and an environment variable, such as `POMODORO_REVAMPED_WORK`; the command line wins over the environment, and the environment over the tmux option. An empty tmux option means its default. `doctor` names any setting that holds a value the plugin does not know. One given to `apply` rides on every binding and on the status call.
 
 ### Internal state
 

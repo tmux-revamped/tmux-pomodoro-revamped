@@ -120,3 +120,16 @@ POMODORO_REVAMPED_TWO=''
 POMODORO_REVAMPED_COLOR=''
 POMODORO_REVAMPED_ICON=''
 POMODORO_REVAMPED_JOB=''
+POMODORO_REVAMPED_KINDS='work	number
+break	number
+long_break	number
+intervals	number 1 100
+warn_seconds	number
+goal	number
+progress_width	number 0 200
+notify	1 0
+bell	1 0
+show_progress	1 0
+show_interval	1 0
+show_goal	1 0
+show_finish	1 0'

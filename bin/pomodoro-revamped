@@ -160,10 +160,17 @@ pomodoro_revamped_doctor_keys() {
   revamped_doctor_line keys ok "every key it binds is free or its own"
 }
 
+pomodoro_revamped_doctor_settings() {
+  pomodoro_revamped_doctor_settings_rows=$(pomodoro_revamped_setting_rows)
+  # shellcheck disable=SC2154
+  revamped_doctor_settings "${POMODORO_REVAMPED_KINDS}" "${pomodoro_revamped_doctor_settings_rows}"
+}
+
 pomodoro_revamped_doctor() {
   revamped_doctor_tmux
   revamped_doctor_notifier
   pomodoro_revamped_doctor_optional less "the help key pages with it, and shows the whole page without it"
+  pomodoro_revamped_doctor_settings
   pomodoro_revamped_doctor_keys
   revamped_doctor_gum
   revamped_doctor_core_tools awk sed tr date

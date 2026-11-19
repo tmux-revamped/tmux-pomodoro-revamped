@@ -38,10 +38,14 @@ pomodoro_revamped_resolve() {
   '
 }
 
+pomodoro_revamped_setting_rows() {
+  pomodoro_revamped_setting_rows_format=$(pomodoro_revamped_format)
+  pomodoro_revamped_setting_rows_live=$(tmux display-message -p "${pomodoro_revamped_setting_rows_format}" 2>/dev/null) || pomodoro_revamped_setting_rows_live=""
+  pomodoro_revamped_resolve "${pomodoro_revamped_setting_rows_live}"
+}
+
 pomodoro_revamped_load() {
-  pomodoro_revamped_load_format=$(pomodoro_revamped_format)
-  pomodoro_revamped_load_live=$(tmux display-message -p "${pomodoro_revamped_load_format}" 2>/dev/null) || pomodoro_revamped_load_live=""
-  pomodoro_revamped_load_values=$(pomodoro_revamped_resolve "${pomodoro_revamped_load_live}")
+  pomodoro_revamped_load_values=$(pomodoro_revamped_setting_rows)
   while IFS='	' read -r pomodoro_revamped_load_name pomodoro_revamped_load_value; do
     IFS= read -r "POMODORO_REVAMPED_S_${pomodoro_revamped_load_name}" <<EOF
 ${pomodoro_revamped_load_value}

@@ -2,6 +2,7 @@ $ pomodoro-revamped doctor
 tmux               ok       <path>, 3.8
 notifier           warn     no osascript or notify-send, so notifications stay in the status line
 less               warn     the help key pages with it, and shows the whole page without it
+settings           ok       every option holds a value it knows
 keys               ok       every key it binds is free or its own
 gum                ok       <path>
 awk                ok       <path>, <flavor>
