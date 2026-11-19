@@ -1,5 +1,20 @@
 # Changelog
 
+# [4.1.0](https://github.com/tmux-revamped/tmux-pomodoro-revamped/compare/v4.0.0...v4.1.0) (2026-11-19)
+
+
+### Bug Fixes
+
+* double the percent sign in a status job ([8d1b365](https://github.com/tmux-revamped/tmux-pomodoro-revamped/commit/8d1b365a601796beb1857a385d3cca196ab74224))
+* fold a table wider than the terminal ([51b6df8](https://github.com/tmux-revamped/tmux-pomodoro-revamped/commit/51b6df8a035586e2eff56fb2ea403903f539a7eb))
+* read the grep of macOS as bsd in doctor ([1093aaa](https://github.com/tmux-revamped/tmux-pomodoro-revamped/commit/1093aaac999274ee6ebcedb3d6940e7693ce0c6c))
+* stop a recording that hangs ([d254780](https://github.com/tmux-revamped/tmux-pomodoro-revamped/commit/d25478094ae8a4deb660ce289440ab678bbf4573))
+
+
+### Features
+
+* name unknown setting values in doctor ([dbe0abd](https://github.com/tmux-revamped/tmux-pomodoro-revamped/commit/dbe0abd5801204cb382d52b354992b0cc5776a68))
+
 # [4.0.0](https://github.com/tmux-revamped/tmux-pomodoro-revamped/compare/v3.0.1...v4.0.0) (2026-11-18)
 
 
