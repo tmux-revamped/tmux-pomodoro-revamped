@@ -263,3 +263,14 @@ source "${BATS_TEST_DIRNAME:-.}/pomodoro_helpers.bash"
   # Assert
   [[ "${output}" == $'[show_progress]\n[work]\n[]\n[]' ]]
 }
+
+@test "pomodoro - a tmux version is read out of its banner and compared part by part" {
+  # Arrange
+  local script='for banner in "tmux 3.6a" "tmux next-3.7" "nonsense"; do printf "[%s]" "$(pomodoro_revamped_parse_version "${banner}")"; done; for pair in "3.6 3.2" "3.2 3.2" "3.1 3.2" "4.0 3.2" "2.9 3.2" " 3.2" "x 3.2"; do if pomodoro_revamped_version_ge ${pair}; then printf y; else printf n; fi; done'
+
+  # Act
+  lib_run pomodoro "${script}"
+
+  # Assert
+  [[ "${output}" == "[3.6][3.7][]yynynnn" ]]
+}
