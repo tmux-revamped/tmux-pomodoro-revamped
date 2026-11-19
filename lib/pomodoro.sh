@@ -608,7 +608,7 @@ pomodoro_revamped_restart() {
 }
 
 pomodoro_revamped_job_quote() {
-  printf '%s\n' "$1" | sed -e "s/'/'\\\\''/g" -e 's/#/##/g' -e "1s/^/'/" -e "\$s/\$/'/"
+  printf '%s\n' "$1" | sed -e "s/'/'\\\\''/g" -e 's/#/##/g' -e 's/%/%%/g' -e "1s/^/'/" -e "\$s/\$/'/"
 }
 
 pomodoro_revamped_carried() {

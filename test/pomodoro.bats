@@ -240,16 +240,16 @@ source "${BATS_TEST_DIRNAME:-.}/pomodoro_helpers.bash"
   [[ "${lines[2]}" == '{"bindings":[["run-shell","-b","--","say done\\;"],["set-option","-gq","@x",""]]}' ]]
 }
 
-@test "pomodoro - a path is quoted for a shell, with a hash doubled for the status line and hidden from a popup" {
+@test "pomodoro - a path is quoted for a shell, with a hash and a percent sign doubled for the status line and the hash hidden from a popup" {
   # Arrange
-  local script='pomodoro_revamped_job_quote "/a b/it'"'"'s #1/tool"; pomodoro_revamped_literal "/a b/it'"'"'s #1/tool"; pomodoro_revamped_tmux_string "say \"\$HOME\" \\ end"'
+  local script='pomodoro_revamped_job_quote "/a b/it'"'"'s #1 50%/tool"; pomodoro_revamped_literal "/a b/it'"'"'s #1 50%/tool"; pomodoro_revamped_tmux_string "say \"\$HOME\" \\ end"'
 
   # Act
   lib_run pomodoro "${script}"
 
   # Assert
-  [[ "${lines[0]}" == "'/a b/it'\\''s ##1/tool'" ]]
-  [[ "${lines[1]}" == "'/a b/it'\\''s '\"\$(printf '%b' '\\0043')\"'1/tool'" ]]
+  [[ "${lines[0]}" == "'/a b/it'\\''s ##1 50%%/tool'" ]]
+  [[ "${lines[1]}" == "'/a b/it'\\''s '\"\$(printf '%b' '\\0043')\"'1 50%/tool'" ]]
   [[ "${lines[2]}" == 'say \"\$HOME\" \\ end' ]]
 }
 
